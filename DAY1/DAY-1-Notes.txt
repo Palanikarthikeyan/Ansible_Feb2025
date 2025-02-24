@@ -1,0 +1,985 @@
+Good Morning All 
+
+Welcome to Ansible Training - DAY1 
+           ---------
+This is Palani Karthikeyan (Call: Karthik) Trainer.
+        ----------------------------------
+we will start session @ 9:30 AM IST
+---------------------------------------
+
+##############################################################
+
+Additional Topics:
+DAY5
+ - ansible tower
+ - terraform Vs ansible 
+      |______________|
+--------------------------------------------------------
+Configuration Management 
+------------------------
+ - Validation based action 
+ - determine the state(action is performed or not)
+
+root@host~]# useradd userA  <==== (1)
+		     ------
+userA is already exists
+		Vs
+root@host~]# useradd userA
+		     ----
+result is empty -> useradd is successfull
+
+|
+Vs
+
+file:p1.sh   <=== (2)
+-------------
+useradd userA >/dev/null 2>&1
+if [ $? -eq 0 ];then
+	echo "User userA is added successfully"
+else
+        echo "User creation is failed"
+fi
+
+Vs
+# adhoc command   <== (3)
+root@host~]# ansible <host> -m user -a "name=userA state=present"
+
+Vs
+
+file:p1.yml   <== (4)
+-----------
+---
+- hosts: <host>
+  tasks:
+  - name: <name of the task>
+    user:
+     name: userA
+     state: present
+----------------------------------------------
+
+
+fork() - create a new process
+------//linux systemcall
+------------------------------------------------
+
+OS - system software 
+     Interface btn user and h/w
+
+Kernel - Core part of an os
+------
+  |->File,Process
+     |     |________ Data - Under the CPU
+     |  
+   Data - Under the Storage 
+
+ User
+ ----------------SHELL-----
+ Kernel
+ ------------------------
+ H/w
+
+
+ User: ansible utilites 
+ ---------------# SHELL-----------
+	|
+	systemcall() = FD (File Descriptor)  FD=0 (STDIN) FD=1(STDOUT) FD=2(STDERR)
+		
+	command 2>system_err.log
+		|_______|
+
+	FD=3 to 2 pow 32(or) 64 // Valid Call
+	FD=0x13345 <== memory related call
+	FD=-1 <==FailedCall
+
+strace <command>
+
+fork() - create a new process
+------
+
+
+ User: ansible utilites 
+ ---------------# SHELL-----------
+	|
+	systemcall() = FD (File Descriptor) 
+	|		     ______________________________
+	FileSystem <---> PCB | IPC ; SCHED ; Memory ; Net |
+	|		    ________________________________
+	Device Drivers
+	|
+	Device Controller(asm)
+	|
+ ---------------------------------
+	H/w
+
+
+
+shell point of view - everything is a command
+
+command -> executable binary file
+
+/bin/  ..... <== internal commands 
+/usr/bin/.... <=== external commands <== while os installation time
+					 using ansible - install
+					 using package - install 
+/sbin/.... <== root user only can execute 
+
+
+root@host~]# date <== (new process - parent is working shell) 
+...		
+root@host~]# ansible-playbook p1.yml <==(new process - parent is working shell)
+
+File manipulation 
+Process 
+administration
+ - package management
+ - user management
+ - network management
+ - service (systemd unit)
+ - device info
+
+Redirect to file
+ |->create a new file and write command result to file
+			  > >>
+windows
+ - powershell cmdlet
+   ..........
+--------------------------------------------------------------------------------------
+
+RedHat Linux - Oracle Linux [56789]
+Debian Linux - ubuntu linux mint 
+
+Oracle Linux
+-------------
+
+Login : root		Login: userA		Login: arun
+password:		password:		password:
+	 |			   |			  |				
+root@host~]#		userA@host~]$		arun@host~]$
+
+
+man <command> {Enter}
+---
+...
+...
+/pattern
+q <== quit from man page
+
+root@host~]# 
+
+
+
+[root@krosumlabs ~]# hostname
+krosumlabs
+[root@krosumlabs ~]# whoami
+root
+[root@krosumlabs ~]# pwd
+/root
+[root@krosumlabs ~]# whatis pwd
+pwd (1)              - print name of current/working directory
+[root@krosumlabs ~]#
+[root@krosumlabs ~]# whatis uname
+uname (1)            - print system information
+[root@krosumlabs ~]#
+[root@krosumlabs ~]# whatis uptime
+uptime (1)           - Tell how long the system has been running.
+[root@krosumlabs ~]# uptime
+ 10:24:38 up  1:29,  2 users,  load average: 0.00, 0.01, 0.05
+[root@krosumlabs ~]# man pwd
+[root@krosumlabs ~]# man date
+[root@krosumlabs ~]# date
+Mon Feb 24 10:26:32 IST 2025
+[root@krosumlabs ~]#
+[root@krosumlabs ~]# date +%D
+02/24/25
+[root@krosumlabs ~]# date +%F
+2025-02-24
+[root@krosumlabs ~]# date +%d
+24
+[root@krosumlabs ~]# date +%B
+February
+[root@krosumlabs ~]#
+
+######################################################################
+To get kernel info
+--------------------
+uname 
+man uname 
+uname 
+uname -r
+uname -s <or> uname 
+
+Linux commandline - we can combine multiple options(anyorder)
+[root@krosumlabs ~]# uname
+Linux
+[root@krosumlabs ~]# uname -s
+Linux
+[root@krosumlabs ~]# uname -r
+4.1.12-124.92.3.el7uek.x86_64
+[root@krosumlabs ~]#
+[root@krosumlabs ~]# uname -rs
+Linux 4.1.12-124.92.3.el7uek.x86_64
+[root@krosumlabs ~]#
+[root@krosumlabs ~]# uname -sr
+Linux 4.1.12-124.92.3.el7uek.x86_64
+[root@krosumlabs ~]#
+
+command -abcde
+
+1st learn -> command 
+then
+ command -a
+ command -b
+ command -c 
+ command -d
+	 ----
+
+#############################################################################
+
+Linux File types
+-----------------
+file <filename>
+----
+
+ 1. Regular File <or> ordinary file
+	|
+	|->a. ASCII <or> TEXT File - user can able to read /understand
+				 (p1.java ;p1.cpp; index.html; p1.log ; vi p1;...)
+				 (p1.yml p1.j2...)
+        |->b. ELF <or> objectFile 
+	      --------------------- user can't able to read/understand
+				(ex: all os commands; compiled object)
+
+2. Directory type file 
+		mkdir <directoryName>
+		mkdir <D1> <D2> <D3>
+		[root@krosumlabs AnsibleTraining]# mkdir -p project/module1/module2/module3
+[root@krosumlabs AnsibleTraining]#
+[root@krosumlabs AnsibleTraining]# ls project
+module1
+[root@krosumlabs AnsibleTraining]# ls project/module1
+module2
+[root@krosumlabs AnsibleTraining]# ls -R project
+project:
+module1
+
+project/module1:
+module2
+
+project/module1/module2:
+module3
+
+project/module1/module2/module3:
+[root@krosumlabs AnsibleTraining]# ls -l
+total 0
+drwxr-xr-x. 2 root root  6 Feb 24 10:38 DAY3
+drwxr-xr-x. 2 root root  6 Feb 24 10:38 DAY4
+drwxr-xr-x. 2 root root  6 Feb 24 10:38 DAY5
+drwxr-xr-x. 3 root root 21 Feb 24 10:40 project
+[root@krosumlabs AnsibleTraining]# ls -l project
+total 0
+drwxr-xr-x. 3 root root 21 Feb 24 10:40 module1
+[root@krosumlabs AnsibleTraining]#
+[root@krosumlabs AnsibleTraining]# ls -ld /etc
+drwxr-xr-x. 79 root root 8192 Feb 24 09:02 /etc
+[root@krosumlabs AnsibleTraining]#
+[root@krosumlabs AnsibleTraining]# ls -ld project/
+drwxr-xr-x. 3 root root 21 Feb 24 10:40 project/
+[root@krosumlabs AnsibleTraining]#
+
+
+3. link file (or) softlink  (or) symbolic link 
+   ln -s sourceFile targetFile
+			|__ link file - depends on the source 
+
+4. device file ( /dev directory)
+    |
+    |-->Character type device (ex: keyboard;printer;terminal)
+    |-->Block type device (ex: HDD;CDROM;USB)
+
+5. named file (or) fifo 
+	
+6. Socket file
+
+vi p1.yml
+....
+....
+:wq
+-------------//RegFile ASCII/TEXT file 
+
+
+Linux File structure - tree structure
+---------------------
+	/ <== root directory - like mycomputer
+	|
+---------------------------
+|	|	|	|  | 
+
+bin/
+
+etc - config file
+
+login as: root =>  /root <== login directory
+
+login as: arun => /home/arun <== login directory
+
+dev - device file
+
+/var/
+  |__log/
+  |__mail/
+  |__web/
+  |__...
+
+ls /
+ls /
+
+ls /proc 
+    |
+  virtual file - current state of kernel 
+ 
+To update kernel parameter 
+(ex: updating hostname
+     shared memory segment
+     semaphore counter
+	.. )
+
+ls -ld /etc
+ls -ld /proc 
+
+[root@krosumlabs ~]# hostname
+krosumlabs
+[root@krosumlabs ~]# cat /etc/hostname
+krosumlabs
+[root@krosumlabs ~]# echo "Testserver" >/etc/hostname
+[root@krosumlabs ~]# cat /etc/hostname
+Testserver
+[root@krosumlabs ~]# hostname
+krosumlabs
+[root@krosumlabs ~]# cat /proc/sys/kernel/hostname
+krosumlabs
+[root@krosumlabs ~]# echo "Devserver" >/proc/sys/kernel/hostname
+[root@krosumlabs ~]# hostname
+Devserver
+[root@krosumlabs ~]# echo "krosumlabs" >/etc/hostname
+[root@krosumlabs ~]# hostname
+Devserver
+[root@krosumlabs ~]# echo "krosumlabs" >/proc/sys/kernel/hostname
+[root@krosumlabs ~]# hostname
+krosumlabs
+[root@krosumlabs ~]#
+#################################################################################
+[student@krosumlabs ~]$ file /dev/null
+/dev/null: character special
+[student@krosumlabs ~]$
+[student@krosumlabs ~]$ ls
+jail  p5  test.log
+[student@krosumlabs ~]$ hostname >r1.log
+[student@krosumlabs ~]$ ls
+jail  p5  r1.log  test.log
+[student@krosumlabs ~]$ cat r1.log
+krosumlabs
+[student@krosumlabs ~]$ uname -rs >r1.log
+[student@krosumlabs ~]$ cat r1.log
+Linux 4.1.12-124.92.3.el7uek.x86_64
+[student@krosumlabs ~]$ ps >>r1.log
+[student@krosumlabs ~]$ uptime >>r1.log
+[student@krosumlabs ~]$ cat r1.log
+Linux 4.1.12-124.92.3.el7uek.x86_64
+  PID TTY          TIME CMD
+ 1419 pts/1    00:00:00 bash
+ 1477 pts/1    00:00:00 ps
+ 11:07:46 up  2:12,  3 users,  load average: 0.00, 0.01, 0.05
+[student@krosumlabs ~]$
+[student@krosumlabs ~]$ ping -c 3 google.com
+PING google.com (142.250.192.46) 56(84) bytes of data.
+64 bytes from bom12s15-in-f14.1e100.net (142.250.192.46): icmp_seq=1 ttl=118 time=29.1 ms
+64 bytes from bom12s15-in-f14.1e100.net (142.250.192.46): icmp_seq=2 ttl=118 time=25.7 ms
+64 bytes from bom12s15-in-f14.1e100.net (142.250.192.46): icmp_seq=3 ttl=118 time=27.5 ms
+
+--- google.com ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2005ms
+rtt min/avg/max/mdev = 25.792/27.510/29.190/1.387 ms
+[student@krosumlabs ~]$
+[student@krosumlabs ~]$
+[student@krosumlabs ~]$ ls -lh r1.log
+-rw-rw-r--. 1 student student 182 Feb 24 11:07 r1.log
+[student@krosumlabs ~]$
+[student@krosumlabs ~]$ wc -l r1.log
+5 r1.log
+[student@krosumlabs ~]$ cp /dev/null r1.log
+[student@krosumlabs ~]$
+[student@krosumlabs ~]$ wc -l r1.log
+0 r1.log
+[student@krosumlabs ~]$ ls -l r1.log
+-rw-rw-r--. 1 student student 0 Feb 24 11:09 r1.log
+[student@krosumlabs ~]$
+[student@krosumlabs ~]$ ping -c 3 google.com >/dev/null
+[student@krosumlabs ~]$ echo $?
+0
+[student@krosumlabs ~]$ ping -c 3 google.com >/dev/null 2>&1
+[student@krosumlabs ~]$ echo $?
+0
+[student@krosumlabs ~]$
+#################################################################################
+  
+process 
+-------
+ ps
+ ps -e (or) ps -A - list of all the process
+ ps -l 
+ ps -f ( will get PPID,Pstart uptime STIME)
+
+ ps -elf
+ top  
+ 		   process(ps)
+			|
+	---------------------------------------------------
+	|						   |
+	User process					System process
+	----                                            ----------------
+	by user						by systemd (PID:1)
+	TTY:pts/<port>				         TTY: ?
+	|
+	parent is:current working shell			parent is : systemD 
+	|						 |
+	after login ->shell ->user IO(userprocess)       |
+							after bootloader ->kernel ->   
+                                                        systemD  ->system process
+
+OFF =>Switch ON PC => POST =>MBR =>Bootloader =>Kernel =>systemd(PID:1) ->list of process
+								|
+				   	       login(?) <or> getty (?) //login window
+								|
+							shell (CLI) Vs Desktop(GUI)
+								|
+						command(IO)     IO <= user process
+
+P1 - 101 (PID) , 0x1234(PAddress), Running R+     (4)
+|				    |    \______Wait  ---<---
+| 				(1) |			     | Exit Signal
+P2 - 102 (PID), 0x3456 (PAddress),Running R+                 |  (3)
+					 (2) |___Exit -----------
+
+.......................................................................
+P1 <-- killed by interrupt <or> signal 
+|
+P2 - R+ //orphan process -- systemd(PPID:1) 
+
+monitoring 
+
+PID	PPID	processName
+102	101	p1
+..
+102	1	p1 <== orphan process
+---------------------------------------------
+
+
+P1  Waiting 			//
+|				|
+P2 - R+ ----- Exit-----//Exit Signal blocked //zombie
+----------------			-----------------------
+
+/root/project/p1.sh &   Vs  rm /root/project/p1.sh
+R+        		    -------------------------//Disk               
+...
+....
+-----//CPU
+
+###########################################################################
+
+ps
+ps -l
+ps -e  <or> ps -A
+ps -a
+ps -elf
+
+top
+press 'q' <-- quit 
+-----------------------------------------
+service
+--------
+systemd unit
+
+root@host~]# ssh <remoteHost> //by user (User process)
+
+		|-->sshd.service - R+ (system process)
+
+root@host~]# mysql -u root -p ... {Enter} //by user (User process)
+mysql>
+mysql>
+		|-->mysqld.service - R+ (system process)
+
+root@host~]# curl IP:<port> {Enter} //by user (User process)
+....
+		|-->httpd.service - - R+ (system process)
+
+
+systemctl -t service {Enter}
+# list of service 
+
+
+open one terminal 
+/bin/mysqld --config /etc/mysql.conf {enter}
+don't close 
+|
+open another terminal 
+we can connect mysql ->query	
+
+/etc/systemd/systemd/mysqld.service <== config file
+[Unit]
+Description=....
+After=....
+
+[Service]
+ExecStart=/bin/mysqld --config /etc/mysql.conf 
+
+[Install]
+WantedBy=...
+-----------------------------------------
+
+usecase:
+start my script automatically during os loading time
+ <or>
+convert my user process ->System process
+	   ------pts/port   --------- ?
+
+Step 1: create a your script( file ->write command ->save and exit)
+|
+Step 2: Give execute permission to this file
+|
+Step 3: create your own service file /etc/systemd/system/filename.service 
+	[Unit]
+	Description=<own description>
+	[Service]
+	ExecStart=<map your executablefile> (Step 2 file)
+	[Install]
+	WantedBy=multi-user.target
+		
+	save and exit
+
+|
+Step 4: reload the daemon => systemctl daemon-reload
+|
+Step 5: to start this service automatically(os loading time)
+	 =>systemctl enable filename.service
+|		     disable 
+|
+Step 6: to test => systemctl start filename.service
+		   systemctl status filename.service 
+		   systemctl stop filename.service
+-----------------------------------------------------------------
+OL[56]
+service sshd start
+service sshd restart
+service sshd stop
+service sshd status
+
+OL[789]
+systemctl start sshd.service
+systemctl stop sshd.service
+systemctl restart sshd.service
+systemctl status sshd.service
+
+journalctl - log details
+---------------------------
+journalctl -p <priority>
+journalctl -u <unitName>
+
+journalctl -u sshd
+journalctl -u crond
+journalctl -u ab
+
+######################################################################
+
+Task:
+-----
+check your login 
+|
+systemctl -t service - see list of service 
+|
+systemctl status crond (or) sshd 
+|
+see the .service file
+/usr/lib/systemd/system/file.service <== Vs =>/etc/systemd/system/file.service
+
+cat /usr/lib/systemd/system/file.service 
+	<or>
+cat /etc/systemd/system/file.service
+
+Step 1: create a your script( file ->write command ->save and exit)
+|
+Step 2: Give execute permission to this file
+|
+Step 3: create your own service file /etc/systemd/system/filename.service 
+	[Unit]
+	Description=<own description>
+	[Service]
+	ExecStart=<map your executablefile> (Step 2 file)
+	[Install]
+	WantedBy=multi-user.target
+		
+	save and exit
+
+|
+Step 4: reload the daemon => systemctl daemon-reload
+|
+Step 5: to start this service automatically(os loading time)
+	 =>systemctl enable ab.service
+|		     disable 
+|
+Step 6: to test => systemctl start ab.service
+		   systemctl status ab.service 
+		   systemctl stop ab.service
+
+###########################################################################
+
+package management 
+------------------
+ |->install
+ |->uninstall
+ |->query
+	- info about package
+ 
+RedHat - OL[567]
+-----------------
+	|->rpm command
+	|->yum utility 
+
+RedHat[89] - OL[89]
+----------------------
+ |->rpm command
+ |->dnf utility 
+
+
+rpm - file
+rpm file format
+---------------------
+package-version-release.arch.rpm
+|       
+bash-4.2.46-35.el7_9.x86_64.rpm
+		     noarch - supports 32/64 bit both
+
+
+https://yum.oracle.com/oracle-linux-isos.htm
+
+wget - commandline utility - download file from internet
+
+wget https://freshrpm.com/.../zsh-4.2-32.el7_9.x8_64.rpm # download rpm file
+---- ====================================================
+|
+root@host~]# ls 
+<empty dirtectory>
+root@host~]# rpm -ivh /root/Download/zsh-4.2-32.el7_9.x8_64.rpm 
+#### 10%
+############ 30%
+##################### 100%
+
+ansible - depends on python
+.......   .................
+
+pA
+ |__pB
+     |__pC
+	|__pD
+|
+yum utility 
+------------
+repository - collection of packages(rpmfile)
+---------     ------------------------------//meta data
+
+yum install <packageName>
+--- -------
+  |__ refers to repo file - /etc/yum.repos.d/public-yum-ol7.repo
+	
+[repoHeader]
+name=<repoName>
+baseurl=<repoEntry>
+gpgkey=<filename>
+gpgcheck=1  <== 1 bool allows ; 0 disabled
+enabled=1 <==   1 bool allows ; 0 disabled
+
+
+
+root@host~]# rpm -ivh /root/Download/zsh-4.2-32.el7_9.x8_64.rpm 
+ Vs
+root@host~]# yum install zsh
+root@host~]# ls {Enter}
+<empty directory>
+
+
+root@host~]# yum install zsh
+		|
+		/etc/yum.repo.d/public...repo
+		
+		enabled=1 
+		
+y - yes to download and install
+n - no
+d - download only
+-----------------------------------------------------------------------
+rpm -q <package> - installed or not
+rpm -ivh <package-verison-release.arch.rpm> - install 
+rpm -qi <package>
+rpm -evh <package>
+
+yum install httpd   Vs dnf install httpd
+		       --- //fast - OL[89]
+		       --- 
+			|->module
+			    - slice
+			ruby2.6
+			ruby2.7 >
+
+rpm
+yum <or> dnf
+---      |
+ |_______|
+---------------------------------------------------------------------------
+
+Linux network configuration
+---------------------------
+nmcli
+Network GUI
+ip add
+nmtui
+...........//tools 
+
+configuration files
+--------------------
+1. interface file => /etc/sysconfig/network-scripts/ifcfg-<interfaceName>
+
+
+BOOTPROTO - How the system will assign the IP
+	    dhcp - dynamic IP
+	    static (or) none - staticIP
+IPADDR = 10.20.30.40
+PREFIX = 24
+ONBOOT="yes" <== while booting time - networkservice should active
+
+ip a (or) ip address - display ip Address
+
+2. /etc/hosts
+   <FQDN>		IPAddress	alias
+  host01.example.com	10.20.30.55	host01
+
+
+ping host01.example.com
+ <or>
+ping 10.20.30.55
+  <or>
+ping host01
+
+ssh host01.example.com (or) ssh 10.20.30.55 (or) ssh host01
+
+
+3. /etc/resolv.conf - by NetworkManager
+nameserver details 
+
+To add nameserver -> /etc/sysconfig/network-scripts/ifcfg-<interface>
+
+			DNS1='primaryIPAddress'
+			DNS2='...'
+			DNS3='....'
+		    Save and exit
+restart network service => systemctl restart network
+|
+cat /etc/resolv.conf
+...
+...
+cat /etc/hostname
+========================================================================
+nmcli - utility 
+-----
+ |---- controlling NetworkManager 
+       -------------------------- 
+           \__ there is no network restart is required
+
+nmcli - list of objects
+		 |->list of commands 
+				|->list of arguments 
+
+To get list of objects
+-----------------------
+nmcli help
+
+To get object specific command help
+-------------------------------------
+nmcli <object> help
+ex: nmcli gen help
+...//list of commands
+
+ex: nmcli <object> <command> help
+			...
+====================================================================================
+windows 
+- list of powershell 
+		|
+		cmdlets - .Net frame work object
+		-------
+		 -this is no .exe file
+
+powershell
+ - supports cmdlet and .exe file
+  
+cmdlet -> verb-noun format
+
+to get list of cmdlets
+-------------------------
+get-command
+
+get-help   => like man in linux
+	 
+############################################################################################
+     Linux - ansible(Engine) Control system
+ +--------------------------------------------+
+ |					      |
+ |					      |
+ +--------------------------------------------+
+
+
+window    -  [ Linux ] OL[78]
+macos     -  [ Linux ] OL[78]
+		|_______________ ansible(Engine) Control System
+
+
+-------------------------------------------------------------------------
+
+|
+OL7 installed image
+https://drive.google.com/file/d/1Xus6VsN4a1TsdzfefkjvhKm60lp-UrCX/view?usp=drive_link
+
+-------------------------------------------------------------------------------------------
+
+Virtual Box - network settings
+--------------------------------
+1. [host] - poweroff state
+
+2. Virtual Box -> Settings ->Network ->Hostonly adapter 
+
+3. Select your host -> Settings ->Network ->Bridged Adapter  ->OK
+|				
+4. same ->another host also  =>Select your host -> Settings ->Network ->Bridged Adapter  ->OK
+
+|
+5. poweron your PC ->start ->login -> ip a {Enter} - see the IPAddress ->192.168.1.N 
+
+putty -> IP -> login ->password ->...
+ 
+================================================================================================
+To test ansible is installed or not
+|
+ansible --version
+-------------------------------------------------------------------------------------------------
+Configuration management - mutable architecture
+	(cm)			|
+				|->we can add/modify/delete infra instance
+
+  [ Infrastructure ] - ready
+	|
+	| - cm activity
+	|      ---------
+
+CM activity (action) - Validation based task - determine task specific action
+
+task1 -> create a new user (demo)	
+task2 -> create a new file (test1.log)				
+task3 -> install new package ( httpd)
+
+[host01]   			[host02]
+ demo Already exists		 demo user is not exists
+ there is no test1.log		 test1.log file is exits
+ httpd is not installed		 httpd is not installed
+
+task1 -> create a new user (demo) [ host01 - there is no changes - state ]
+				  [ host02 - new user demo will create - m/c state will change]
+
+task2 ->create a new file (test1.log)[ host01 - there is changes in the m/c state ]
+				     [ host02 - there is no changes - state]
+
+task3 -> install new package ( httpd) [host01 & host02 - m/c state is changed]
+
+------------------------------------------------------------------------------------
+
+ [ Control System ] ---------SSH-------------[ remote Host01 ]
+	|	    ---------SSH-------------[ remote Host02 ]
+	ansible					..
+					     [ remote HostN ] 
+
+ ansible.cfg - ansible configuration file
+ ------------
+	|---->map to inventory file
+		     ----------------
+		    list of remote node details
+
+		   nodeName (or) IPAddress  user  password ....
+		    ....
+		    ....
+--------------------------------------------------------------------------------------
+
+	Control	   
+ [ansible-master-system] <----------------------->[host01]
+  --------------------------------------------------->
+			1. SSH Connection
+ ----------------------------------------------------->
+			2. create a new python process(child-python) on target system(node m/c)
+ ----------------------------------------------------->
+			3. push the ansible module on remote m/c
+ ------------------------------------------------------>
+			4. child-python - execute loaded ansible module
+						  ----------------------//action
+							  .....
+							  .....
+			----------------<-------------------|
+			5. 		json response 
+			
+			6. child-python - exit 
+
+
+---------------------------------------------------------------------------------------------
+
+[Admin]
+	- CGI Appln dev env
+	  -------------------
+	 install webserver
+	 configure webserver
+	 create test page
+	 configure server script
+	 install database
+	 configure database file
+	 start webserver
+	 start database
+	 test page
+	 -----------------//host01 ..... host1000
+
+ansible [InventoryGroupName] -m <module> -a "argument parameters" <== adhoc commandline
+-------
+-----------------------------------------------------------------------------------------------
+yum install –y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+yum install –y ansible 
+ansible     - - version 
+
+<or> 
+pip3 install ansible 
+------------------------------------------------
+1. Go to login
+
+2. mkdir ansible_training
+3. cd ansible_training
+|
+4. ansible.cfg file - create ansible.cfg file
+|
+5. vi ansible.cfg
+  [defaults]
+  inventory=hosts
+	    ------//this is inventory filename(hosts)
+
+  :wq 
+ 6. vi hosts {Enter}
+    [dev] <== group name
+    remotenode ansible_ssh_ip=<ip> ...
+
+    :wq 
+    
+ 7. ansible dev -m ping {Enter}
+------------------------------------------------------
+
