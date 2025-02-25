@@ -1,0 +1,680 @@
+Ansible - DAY2 
+------------------
+adhoc
+YAML
+playbook
+-------------------
+
+/etc/ansible/ansible.cfg
+			|__________ hosts
+				    [web]
+				     node1
+				     node2
+
+
+/root/Test1/ansible.cfg
+		    |__________hosts
+				  |
+				[dev]
+				nodeA
+				nodeB
+
+/root/p1.yml
+	|______ install gcc gdb ..//task
+
+root@host~]# ansible-playbook p1.yml  -> node1 & node2
+	     ansbile-playbook -i /root/Test1 p1.yml ------>nodeA nodeB
+########################################################################################
+adhoc
+YAML
+playbook
+-----------------
+Linux OS <or> Win os 		Vs 	 ansible 
+---------------------			 ----------
+ |->Script				  |->playbook - like a script
+    - command				      - module <== existing python code
+ 
+ |->man <command>			  |-> ansible-doc <module> - like a man 
+
+ansible all -m ping <== ping module ( ping.py )
+
+
+ansible-doc --list (or) ansible-doc -l <== list of available module
+ 
+Inventory File
+------------------
+[GroupName]
+node1
+node2
+
+
+[root@krosumlabs ansible_tut]# cat -n hosts
+     1  nodeXYZ
+     2  [webserver]
+     3  #node1 ansible_ssh_host=192.168.1.10 ansible_python_interpreter=/bin/python3 ansible_ssh_pass=apelix
+     4  shan ansible_ssh_host=192.168.1.9 ansible_ssh_pass=apelix
+     5  [dev]
+     6  node1 ansible_ssh_host=192.168.1.7 ansible_ssh_pass=apelix
+     7  [qa]
+     8  node2
+     9  [build]
+    10  nodeA
+    11  nodeB
+[root@krosumlabs ansible_tut]# ansible webserver --list-hosts
+  hosts (1):
+    shan
+[root@krosumlabs ansible_tut]# ansible dev --list-hosts
+  hosts (1):
+    node1
+[root@krosumlabs ansible_tut]# ansible build --list-hosts
+  hosts (2):
+    nodeA
+    nodeB
+[root@krosumlabs ansible_tut]# ansible all --list-hosts
+  hosts (6):
+    nodeXYZ
+    node2
+    node1
+    shan
+    nodeA
+    nodeB
+[root@krosumlabs ansible_tut]# ansible ungrouped --list-hosts
+  hosts (1):
+    nodeXYZ
+[root@krosumlabs ansible_tut]#
+
+#################################################################################
+group - parent
+  |__Subgroups - children
+
+ [web_dev]
+  node1
+  node2
+ [web_prod]
+  nodeA
+  nodeB
+
+ [db_dev]
+ node3
+ node4
+ [db_prod]
+ nodeC
+ nodeD
+ 
+ [development:children]
+  web_dev
+  db_dev
+ [production:children]
+   web_prod
+   db_prod
+
+
+################################################################################
+adhoc syntax:-
+--------------
+ansible <groupName|hostName>  -m <ansibleModule> -a "arguments"
+	 ^^^^^^^^^^^^^^^^^^
+	  reference from inventoryFile
+
+1st - SSH connection
+2nd - create subshell ->python (childPython)
+3rd - control system ansible(python) - push the ansible module to remote m/c
+4th - On the remote m/c Childpython execute the ansible module # task execution
+5th - results - returns to controlsystem(ansible-engine) //json format
+6th - On the remote system childPython ->exit ->subshell ->exit
+
+Linux commands 
+...
+-m command 
+
+
+[root@krosumlabs ansible_tut]# ansible node1 -m command -a "sleep 50"
+node1 | CHANGED | rc=0 >>
+
+
+ansible node1 -m command -a "sleep 5"
+ansible node1 -m command -a "sleep 5" -v
+ansible node1 -m command -a "sleep 5" -vv
+ansible node1 -m command -a "sleep 5" -vvv
+ansible node1 -m command -a "sleep 5" -vvvv
+ansible node1 -m command -a "sleep 5" -vvvvv
+
+
+ansible node1 -m command -a "sleep 5" -vvvvv|less
+press 'q' 
+
+ansible-doc command  
+============================================================================
+
+[ansible] <-----------SSH---------->[node1]
+controlm/c				- python
+				
+ansible node1 -m command -a "uname" 
+Error 
+
+ansible node1 -m raw -a "uname"
+
+command	Vs shell Vs raw
+-----------------------------------------------------------
+			command		shell	 raw
+run simple command	  Ok		 Ok	  ok
+
+run command with
+pipe or redirection       No             OK	  OK
+
+run command without	  No		 No	  OK
+python			
+-------------------------------------------------------------
+
+ansible-doc command
+ansible-doc shell
+ansible-doc raw
+
+
+[root@krosumlabs ansible_tut]# echo One;sleep 3;echo Two;sleep 3;echo OK
+One
+Two
+OK
+[root@krosumlabs ansible_tut]# echo One;sleep 3;echo Two;sleep 3;echo OK >r1.log
+One
+Two
+[root@krosumlabs ansible_tut]# ls -t
+r1.log  myinventory  ansible.cfg
+[root@krosumlabs ansible_tut]# cat r1.log
+OK
+[root@krosumlabs ansible_tut]# (echo One;date;ps;echo OK) >r2.log
+[root@krosumlabs ansible_tut]# ls -t
+r2.log  r1.log  myinventory  ansible.cfg
+[root@krosumlabs ansible_tut]# cat r2.log
+One
+Tue Feb 25 12:01:17 IST 2025
+  PID TTY          TIME CMD
+ 1232 pts/0    00:00:00 bash
+ 2435 pts/0    00:00:00 bash
+ 2437 pts/0    00:00:00 ps
+OK
+[root@krosumlabs ansible_tut]#
+
+###############################################################################
+
+OL => rpm -qa |grep <package> <== To test package is installed or not
+	   <or>
+      rpm -q <package>
+	
+install software pacakge on remote m/c 
+			    ----------
+				|->debian linux -> module name is called apt
+				|->RHL <or> OL -> module name is called yum (or) dnf 
+------------------------------------------------------------------------------------
+
+OL[567] -> yum install <package>
+
+OL[89] -> dnf install <package>
+	  dnf install <package:version>
+	  ----//commands - in ansible dnf module 
+				      ---
+-----------------------------------------------------------------------------------
+Unix - 1969-70-71 
+---------------------
+GNUProject - 1983
+-----------
+ |->FSM 
+ |-> ...
+
+Minix - edu
+|
+Linux - Kernel - 1991 --->GNU -> GNULinux Kernel
+
+OS = Kernel + utility(software tools) (ex: unix)
+     ......    ^^^^^^^^^^^^^^^^^^^^^
+			|
+			distributors
+			 - RedHat Oracle Debian Ubuntu Linuxmint...
+		
+redHat -> uname ->Linux
+ |
+ |--> yum install httpd
+      dnf install httpd
+
+ubuntu -> uname ->Linux 
+ |--> apt-get install apache2
+      apt install apache2
+
+-m command -a "Linux Essential Commands"
+-m shell -a   "Linux Essential Commands|anotherLinux_essentail_command"
+
+-m yum -a "name=<package> state={installed|absent|latest}"
+-m dnf -a "name=<package> state={installed|absent|latest}"
+-m apt -a "name=<package> state={absent|latest}"
+----------------------------------------------------------------------------------
+
+ansible.cfg
+
+[defaults]
+inventory=myinventory
+remote_user=opc
+
+[privilege_escalation]
+become=true
+become_method=sudo
+become_user=opc
+
+
+opc@host~]# yum install zsh
+permission denied 
+
+opc@host~]# sudo yum install zsh
+---              ------------------ 
+
+###############################################################
+
+ansible <node> -m yum -a "name=zsh state=installed"
+		  |->OL7
+		  dnf ->OL8
+
+#############################################################################
+Task:
+
+1. use command - display memory info details ( free -m)
+   ansible all -m command -a "free -m"
+
+2. use shell   - count total no.of loaded kernel module ( lsmod|wc -l)
+   ansible all -m shell -a "lsmod|wc -l"
+   ansible all -m shell -a "echo List of loaded kernel modules:;lsmod|wc -l"
+
+3. ansible-doc copy
+   ansible-doc fetch
+
+4. create a shell script ( vi p1.sh )
+   echo "Working script PID:$$"
+   echo "Parent PID:$PPID"
+   echo "Hostname:`hostname`"
+   :wq
+    |
+    chmod a+x p1.sh
+
+   using shell module - execute p1.sh script on remote system
+			redirect script results to external log
+			file ( ./p1.sh >r1.log)
+
+5. using command module - read r1.log content
+|
+-------------------------------------------------------------------------
+ ansible node1 -m copy -a "src=p1.sh dest=/tmp/ mode=0755
+
+ ansible all -m shell -a "/tmp/p1.sh >result.log"
+
+ ansible all -m fetch -a "src=/root/result.log dest=/tmp"
+
+[root@krosumlabs ansible_tut]# ls /tmp/node1
+root  tmp
+[root@krosumlabs ansible_tut]# ls /tmp/node1/root/
+result.log
+[root@krosumlabs ansible_tut]# ls /tmp/shan/root/
+result.log
+[root@krosumlabs ansible_tut]# cat /tmp/shan/root/result.log
+Working script PID:53429
+Parent PID:53428
+Hostname:shan
+[root@krosumlabs ansible_tut]# cat /tmp/node1/root/result.log
+Working script PID:7804
+Parent PID:7803
+Hostname:node1
+[root@krosumlabs ansible_tut]# ./p1.sh
+Working script PID:4486
+Parent PID:1232
+Hostname:krosumlabs
+=============================================================================
+[root@krosumlabs ansible_tut]# ansible node1 -m fetch -a "src=/root/result.log dest=/tmp/"
+node1 | SUCCESS => {
+    "changed": false,
+    "checksum": "feaa0c208ea377ad2c7177751ce6c3260b050333",
+    "dest": "/tmp/node1/root/result.log",
+    "file": "/root/result.log",
+    "md5sum": "38e749c2e16489a4d352421e17f90d5a"
+}
+[root@krosumlabs ansible_tut]# ansible node1 -m fetch -a "src=/root/result.log dest=/tmp/D1/"
+node1 | CHANGED => {
+    "changed": true,
+    "checksum": "feaa0c208ea377ad2c7177751ce6c3260b050333",
+    "dest": "/tmp/D1/node1/root/result.log",
+    "md5sum": "38e749c2e16489a4d352421e17f90d5a",
+    "remote_checksum": "feaa0c208ea377ad2c7177751ce6c3260b050333",
+    "remote_md5sum": null
+}
+[root@krosumlabs ansible_tut]# ansible node1 -m fetch -a "src=/root/result.log dest=/tmp/"
+node1 | CHANGED => {
+    "changed": true,
+    "checksum": "16d8d28f90abaf20d0f8c73eca8a04055ff41de5",
+    "dest": "/tmp/node1/root/result.log",
+    "md5sum": "a8fcc2ddfc85d8ad7d928dc77dfccb3d",
+    "remote_checksum": "16d8d28f90abaf20d0f8c73eca8a04055ff41de5",
+    "remote_md5sum": null
+}
+[root@krosumlabs ansible_tut]# ansible node1 -m fetch -a "src=/root/result.log dest=/tmp/"
+node1 | SUCCESS => {
+    "changed": false,
+    "checksum": "16d8d28f90abaf20d0f8c73eca8a04055ff41de5",
+    "dest": "/tmp/node1/root/result.log",
+    "file": "/root/result.log",
+    "md5sum": "a8fcc2ddfc85d8ad7d928dc77dfccb3d"
+}
+[root@krosumlabs ansible_tut]# ansible node1 -m fetch -a "src=/root/result.log dest=/tmp/D2/"
+node1 | CHANGED => {
+    "changed": true,
+    "checksum": "16d8d28f90abaf20d0f8c73eca8a04055ff41de5",
+    "dest": "/tmp/D2/node1/root/result.log",
+    "md5sum": "a8fcc2ddfc85d8ad7d928dc77dfccb3d",
+    "remote_checksum": "16d8d28f90abaf20d0f8c73eca8a04055ff41de5",
+    "remote_md5sum": null
+}
+[root@krosumlabs ansible_tut]#
+========================================================================================
+service:
+    name: foo
+    pattern: /usr/bin/foo
+    state: started
+ |
+ | convert to adhoc 
+ |
+ansible <node> -m service -a "name=foo patter=/usr/bin/foo state=started"
+|
+|__ in Linux Command: systemctl start foo.service 
+
+ansible node1 -m service -a "name=cron state=started"
+-----------------------------------------------------------------------------------------
+YAML
+-----
+ |-> file content => key: value //pair format
+
+ |-> key: value
+	  ------
+	   |-> Scalar - Single - numbers,str,bool,null
+ 
+ |->key:<space>Value
+
+file
+ |->file_name
+ |->file_index
+ |->file_utilization
+ |->file_mount
+ 
+
+  file_name: index.html
+  file_index: 456
+  file_utilization: 98.56
+  file_mount: True
+ ------------------------//1Key: 1value
+
+
+ |-> key: value
+	  ------
+	   |-> Scalar - Single - numbers,str,bool,null
+ 	   |-> Collection - more than one value (or) collection of scalar
+		|->Array (or) list - index based - [] 
+		|->object (or) dict - key based  - {}
+	 
+
+ file_details: [index.html,456,98.56,True]
+ ------------  ===========================//array 1Key: MultipleValues
+
+		<or>
+ file_details:
+ -<space>index.html
+ -<space>456
+ -<space>98.56
+ -<space>True
+ --------------------------//array 1Key: Multiplevalues 
+
+ file_details: {f1: index.html,f2: 456,f3: 98.56,f4: True}
+ ------------- ============================================//dict (or) object 
+							1Key: MultipleValues
+		<or>
+ file_details:
+ <><>f1:<>index.html
+ <><>f2:<>456
+ <><>f3:<>98.56
+ <><>f4:<>True
+ -----------------------//dict (or) object - 1key: multiple value
+
+ <> - 1space 
+ 
+ -m yum -a "name=zsh state=installed" 
+    |
+    yum:
+      name: zsh
+      state: installed
+   ---------------------//dict (or) object 
+
+
+key1:<space>Value  -->(rule 1)
+
+key2:
+<space1><space2>Key:<space>Value  -->(rule 2)
+
+Key3:
+-<space>Value1  --->(rule 3)
+####################################################################################
+
+pkgs: [yum,dnf,apt]  <== Array - 1D Array
+	<or>
+pkgs:
+- yum
+- dnf
+- apt
+--------------- 1D Array
+
+
+pkgs: [[yum,dnf,apt]]  <== Array - MultiDimensional Array
+
+server:[[RHL5,RHL6,RHL7],[OL5,OL6,OL7],[DEB14,DEB15]] 
+        |------- -------|-------------|------------|
+    	<or>
+server:
+- [RHL5,RHL6,RHL7]
+- [OL5,OL6,OL7]
+- [DEB14,DEB15]
+	<or>
+server:
+- 
+  - RHL5
+  - RHL6
+  - RHL7
+- 
+  - OL5
+  - OL6
+  - OL7
+- 
+  - DEB14
+  - DEB15
+ --------------------//<== Array - MultiDimensional Array
+
+-------------------------------------------------------------//Array of Array
+
+pkgs: [yum,dnf,apt]  <== Array - 1D Array 1Key ->1Value ->pkgs[1] ->dnf
+		Vs
+pkgs: [[yum,dnf,apt]]  <== Array of Array  pkgs[0][1] ->dnf
+
+ Vs
+pkgs: [{K1: yum,K2: dnf,K3: apt}] <== Array of object  pkgs[0][K2] ->dnf
+ 
+ <or>
+pkgs:
+- K1: yum
+- K2: dnf
+- K3: apt
+----------------//Array of object
+
+
+
+
+tasks: [{},{},{},{}]
+        0   1  2  3 <== index 
+
+tasks: [
+	{module: yum,service: httpd},  <== 0th index
+	{module: apt,service: apache2}, <== 1st index
+	{module: dnf,service:fastapi}   <== 2nd index 
+      ]
+
+  Vs 
+
+tasks: {module: yum,module:apt} // -> {module: apt}
+	 |___________|
+		|->duplicate key
+
+##############
+
+tasks: [
+	{module: yum,service: httpd},  <== 0th index
+	{module: apt,service: apache2}, <== 1st index
+	{module: dnf,service:fastapi}   <== 2nd index 
+      ]
+	<or>
+tasks:
+- module: yum  <----| 0th index
+  service: httpd <--|
+- module: apt <-------| 1st index 
+  service: apache2 <--|
+- module: dnf    <-----| 2nd index 
+  service: fastapi <---|
+-------------------------------------------//Array of object
+
+Task:
+-----
+object of array
+------------------
+tasks: {modules: [yum,apt,dnf]}
+	-------- -------------
+
+tasks:
+  modules:
+  - yum
+  - apt
+  - dnf
+
+object of object
+-------------------
+tasks: {module1: {module: yum,service: httpd},module2: {module1: apt,service: apache2}}
+       |______________________________________________________________________________|
+		object of object
+			<or>
+tasks:
+  module1:
+    module: yum
+    service: httpd
+  module2:
+    module: apt
+    service: apache2
+---------------------------------------------------------------
+
+Config file content
+ - INI format  - 1D data  1Key = 1Value
+ - YAML format - MD data  1Key: [ ] (or) 1Key: {}
+
+interface=eth0  Vs  interface: [eth0,eth1,eth2]
+--------------      ---------------------------
+---------------------------------------------------------------------------------------
+
+- name: ensure a list of packages installed
+  yum:
+    name: "{{ packages }}"
+  vars:
+    packages:
+    - httpd
+    - httpd-tools
+
+[ {name: ensure a list of packages installed,yum:{name: Packages},vars:{packages:[httpd,httpd-tools]}}]
+
+- name: <user defined string>
+  <module> 
+    Key1: Value
+    Key2: Value
+  
+###################################################################################
+
+file: filename.yaml (or) filename.yml
+---
+<yaml Content> //Key: Value format
+...
+------------------------------------------
+Ansible playbook - like a script
+	---------
+	procedure style - line by line (task by task execution)
+	
+1. target section - remote node details 
+2. variable section - define user defined variable: value - initialization
+3. task section - module based action - run on remote m/c 
+4. handler section - secondary task - module - based on notification 
+5. template section - jinja2 template code
+.....................
+
+target section
+- name: <user defined message>
+  hosts: <remote host details>
+
+
+
+---
+- name: Update web servers <----|
+  hosts: webservers        <----| target section
+
+  tasks:
+  - name: Ensure apache is at the latest version
+    ansible.builtin.yum:
+      name: httpd
+      state: latest
+
+  - name: Write the apache config file
+    ansible.builtin.template:           <----|
+      src: /srv/httpd.j2		     | template section
+      dest: /etc/httpd.conf             <----|
+
+----------------------------------------------------------------------------------------
+
+file:p1.yml (or) p1.yaml <=== 
+
+---
+- name: <name of the playbook>
+  hosts: <remote node> <== refers from inventory file
+  tasks:
+  - name: task1 action
+    module:
+      key1: value1
+      key2: value2
+  - name: task2 action
+    module:
+      key1: value
+      key2: value
+  - ...
+  - ...
+------------------------------------------------
+ ansible localhost -m command -a "date"
+ ansible localhost -m copy -a "src=r1.log dest=r2.log"
+
+vi p1.yml
+---
+- name: simple playbook execution
+  hosts: webserver
+  tasks:
+  - name: execute date command - task1
+    command: date 
+  - name: copy the file r1.log from control mc to every remote mc
+    copy:
+      src: r1.log 
+      dest: r2.log
+:wq
+
+ansible-playbook p1.yml --syntax-check
+----------------------- ===============
+
+ansible-playbook p1.yml {Enter}
+
+###############################################################################
+
+
+
+
+
+
+
