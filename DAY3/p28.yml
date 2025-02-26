@@ -1,0 +1,13 @@
+---
+- hosts: localhost
+  tasks:
+  - name: task1
+    debug: msg="OK-1"
+  - name: task2
+    debug: msg="OK-2"
+    when: true
+  - name: task3
+    debug: msg="OK-3"
+    when: false
+  - name: task4
+    debug: msg="OK-4"

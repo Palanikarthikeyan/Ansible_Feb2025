@@ -1,0 +1,10 @@
+
+---
+- hosts: localhost
+  vars:
+    myserver: Linux
+  tasks:
+  - name: task1
+    debug: var=myserver   
+  - name: task2
+    debug: var=ansible_env.HOSTNAME  # builtin variable

@@ -1,0 +1,9 @@
+---
+- hosts: all
+  tasks:
+  - name: display-task1
+    debug: msg="mydb value is:{{mydb}} port number is:{{port}}"
+    ignore_errors: true
+  - name: display-task2
+    debug: msg="myapp value is:{{myapp}} port number is:{{port}}"
+    ignore_errors: true

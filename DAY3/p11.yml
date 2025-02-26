@@ -1,0 +1,13 @@
+---
+- name: command and debug module
+  hosts: localhost
+  tasks:
+  - name: command module - task1
+    command: date
+    register: result # register keyword used capture module execution result
+  - name: debug module - task2
+    debug: var=result # display captured result to monitor
+  - name: debug module - task3
+    debug: var=result.stdout # display captured result to monitor
+  - name: debug module - task4
+    debug: var=result.stdout_lines[0] # display captured result to monitor

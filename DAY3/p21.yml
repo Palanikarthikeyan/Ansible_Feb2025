@@ -1,0 +1,15 @@
+---
+- name: vars playbook
+  hosts: localhost
+  vars:
+   pkg: flask
+  tasks:
+  - name: task1
+    debug: var=pkg
+  - name: task2
+    vars:
+     pkg: django
+     server: linux
+    debug: var=[pkg,server]
+  - name: task3
+    debug: var=[pkg,server]

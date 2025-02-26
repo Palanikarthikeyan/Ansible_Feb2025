@@ -1,0 +1,14 @@
+---
+- name: play-1
+  hosts: localhost
+  tasks:
+  - name: task1
+    command: date
+  - name: task2
+    command: 
+      cmd: uptime
+- name: play-2
+  hosts: localhost
+  tasks:
+  - name: taskA
+    command: ps   

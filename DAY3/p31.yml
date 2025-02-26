@@ -1,0 +1,18 @@
+---
+- hosts: all
+  vars:
+    pkgs: [httpd,apache2]
+  tasks:
+  - name: install httpd 
+    dnf: name="{{pkgs[0]}}" state=installed
+    when: ansible_os_family == "RedHat"
+    register: rhl_result
+  - name: install apache2
+    apt: name="{{pkgs[1]}}" state=present
+    when: ansible_os_family == "Debian"
+    register: deb_result
+  - name: display RedHat installation summary
+    debug: var=rhl_result
+  - name: display Debian installation summary
+    debug: var=deb_result
+

@@ -1,0 +1,9 @@
+---
+- name: playbook-commandmodule
+  hosts: localhost
+  tasks:
+  - name: task1
+    command: date
+  - name: task2
+    command: 
+      cmd: uptime

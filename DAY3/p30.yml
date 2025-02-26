@@ -1,0 +1,12 @@
+---
+- hosts: all
+  vars:
+    pkgs: [httpd,apache2]
+  tasks:
+  - name: install httpd 
+    dnf: name="{{pkgs[0]}}" state=installed
+    when: ansible_os_family == "RedHat"
+  - name: install apache2
+    apt: name="{{pkgs[1]}}" state=present
+    when: ansible_os_family == "Debian"
+

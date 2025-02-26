@@ -1,0 +1,18 @@
+---
+- name: yum and service playbook
+  hosts: shan
+  tasks:
+  - name: install httpd package
+    dnf:
+     name: httpd
+     state: installed
+    register: yum_result
+  - name: start httpd service
+    service:
+      name: httpd
+      state: started
+    register: service_result
+  - name: display status
+    debug: 
+      msg: "yum status code is:{{yum_result.rc}} service status:{{service_result}}"
+

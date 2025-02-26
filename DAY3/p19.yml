@@ -1,0 +1,10 @@
+---
+- name: variable section demo
+  hosts: localhost
+  vars:
+    pkg: demoApp
+    version: 1.45
+    release: 2.41
+  tasks:
+  - name: display package details
+    debug: msg="Pacakge name:{{pkg}} version:{{version}} and release:{{release}}"

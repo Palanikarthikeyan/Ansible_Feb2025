@@ -1,0 +1,12 @@
+---
+- name: playbook
+  hosts: all
+  tasks:
+  - name: task-1
+    command: uptime
+    register: result
+  - name: task-2 - display uptime status code
+    debug: var=result.rc
+  - name: task-3 - display uptime result
+    debug: var=result.stdout
+

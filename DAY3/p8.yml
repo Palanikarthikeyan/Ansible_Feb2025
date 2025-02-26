@@ -1,0 +1,9 @@
+---
+- name: command and debug module
+  hosts: localhost
+  tasks:
+  - name: command module - task1
+    command: date
+    register: result # register keyword used capture module execution result
+  - name: debug module - task2
+    debug: msg="Today date:"

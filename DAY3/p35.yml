@@ -1,0 +1,5 @@
+---
+- hosts: all
+  tasks:
+  - debug: msg="App name:{{myapp}} running port:{{port}} DBName:{{dbname}}"
+    ignore_errors: true

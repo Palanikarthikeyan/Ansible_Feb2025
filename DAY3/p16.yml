@@ -1,0 +1,8 @@
+---
+- name: demo1
+  hosts: localhost
+  tasks:
+  - name: task1
+    command: date
+    register: result # capture module execution results ; register is not a module
+  - debug: var=result

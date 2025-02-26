@@ -1,0 +1,10 @@
+---
+- name: simple playbook execution
+  hosts: node1
+  tasks:
+  - name: execute date command - task1
+    command: date 
+  - name: copy the file r1.log from control mc to every remote mc
+    copy:
+      src: r1.log 
+      dest: r2.log

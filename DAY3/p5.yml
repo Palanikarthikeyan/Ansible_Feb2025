@@ -1,0 +1,14 @@
+---
+- name: playbook-commandmodule
+  hosts: localhost
+  tasks:
+  - name: task1
+    command: date
+  - name: task2
+    command: 
+      cmd: uptime
+  tasks:
+  - name: taskA
+    command: ps   
+  # overwrite existing tasks (task1,task2) 
+  # we can see only ps 

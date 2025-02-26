@@ -1,0 +1,15 @@
+---
+- hosts: node1
+  tasks:
+  - name: execute group of independent commands and redirect results to external file
+    shell: (uptime;hstname;df -Th /;ps -e|wc -l) >/tmp/r1.log
+
+  - name: use fetch module copy external log file(r1.log) to control system
+    fetch: src="/tmp/r1.log" dest="/tmp"
+  
+  - name: use command module - read r1.log - register to variable
+    command: cat /tmp/r1.log
+    register: output
+
+  - name: display log contents
+    debug: var=output.stdout_lines

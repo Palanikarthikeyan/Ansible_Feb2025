@@ -1,0 +1,14 @@
+---
+- name: playbook - register demo
+  hosts: localhost
+  tasks:
+  - name: task1
+    command: date
+    register: result1
+  - name: task2
+    shell: uptime
+    register: result2
+  - name: display1
+    debug: var=result1 # display date result
+  - name: display2
+    debug: var=result2 # display uptime result

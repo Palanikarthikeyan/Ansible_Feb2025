@@ -1,0 +1,7 @@
+---
+- name: ansiblevariable demo
+  hosts: all
+  tasks:
+  - debug: msg="os name is {{ansible_os_family}}"
+  - debug: msg="Free space memory :{{ansible_memfree_mb}}"
+  - debug: var=ansible_memory_mb

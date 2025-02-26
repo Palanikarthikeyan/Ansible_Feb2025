@@ -1,0 +1,28 @@
+---
+- hosts: localhost 
+  vars:
+   version: 1.0
+   pkgs: [irb,python3,gcc,zsh] # array/list 
+   d: {K1: V1,K2: [OL5,OL6,OL7],K3: {K1: {server: OL8.9,shell: /bin/bash}}}
+  tasks:
+  - debug: var=d
+  - debug: var=d['K3']['K1']['shell']
+  - debug: var=d.K3.K1.shell
+  - yum: name="{{pkgs[1]}}" state="installed"
+  - name: demo
+    vars:
+      pkgs:
+      - irb
+      - python3
+      - gcc
+      - zsh
+    debug: var=pkgs
+  - name: demo
+    vars:
+      pkgs:
+      - zsh
+      - python3
+      - gcc
+    yum:
+     name: "{{pkgs}}"
+     state: installed 

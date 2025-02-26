@@ -1,0 +1,11 @@
+---
+- name: debugmodule playbook execution
+  hosts: localhost
+  tasks:
+  - name: display to monitor
+    debug:
+      msg: "This is Hello message from playbook"
+  - name: summary details
+    debug: msg="This is msg block"
+
+
