@@ -1,0 +1,458 @@
+---
+- name: <name of your playbook>
+  hosts: <remoteHost> (or) groupName <== refers from inventory file
+  tasks:
+  - name: <Name of the task>
+    module: 
+      key1: value
+      key2: value
+
+ansible node1 -m yum -a "name=zsh state=installed"
+|
+file:p1.yml
+
+---
+- name: simpleplaybook
+  hosts: node1
+  tasks:
+  - name: install zsh package
+    yum:
+      name: zsh
+      state: installed
+
+----------------------------
+file: p2.yml
+
+---
+- hosts: node1
+  tasks:
+  - yum:
+     name: zsh
+     state: installed
+
+Note: - name: <user defined message tag is optional>
+------------------------------
+
+file:p3.yml
+- name: simpleplaybook
+  hosts: node1
+  tasks:
+  - name: install zsh package
+    yum: name=zsh state=installed  <== we can write task args like adhoc 
+
+ansible-playbook p1.yml --syntax-check
+ansible-playbook p1.yml
+--------------------------------------------------------------------------
+
+	[ansible-playbook] ---- display to monitor ------>--- [ monitor ]
+				------------------
+				  debug module
+				   |->msg - user defined string
+				   |->var - variable
+
+
+print("Hello") -->display to monitor
+echo "Hello"   -->display to monitor
+
+- name: display to monitor
+  debug:
+    msg: "This is Hello message from playbook"
+- name: summary details
+  debug: msg="This is Footer message from playbook"
+
+results: { stdout: <command result>,K1: [V1,V2]}
+
+results
+results.stdout
+results.K1
+results.K1[0] (or) results.K1.0 ->V1
+results.K1[1] (or) results.K1.1 ->V2
+
+##########################################################################
+
+Write a playbook
+ task1 use command module - uptime 
+ task2 use debug module - display uptime status code (rc)
+ task3 use debug module - display uptime result
+------------------------------------------------------
+
+tasks:
+- name: task-1
+  command: uptime
+  register: result
+- name: task-2 - display uptime status code
+  debug: var=result.rc
+- name: task-3 - display uptime result
+  debug: var=result.stdout
+
+
+tasks:
+- name: install zsh
+  yum: 
+   name: zsh
+   state: installed
+   repo..: ....
+   ....:  ....
+  register: yum_result  <== capture yum module execution results to yum_result variable
+  
+############################################################################
+
+Write a playbook
+|
+|->ansible all -m yum -a "name=httpd state=installed"
+|->ansible all -m service -a "name=httpd state=started"
+   |
+  display each module status code details to monitor.
+
+
+
+- name: install httpd package
+  yum:
+   name: httpd
+   state: installed
+  register: yum_result
+- name: start httpd service
+  service:
+   name: httpd
+   state: started
+  register: service_result
+- name: display status
+  debug: 
+    msg: "yum status code is:{{yum_result.rc}} service status:{{service_result}}"
+
+########################################################################################
+
+variable section
+-----------------
+vars <== predefined key
+
+vars:
+ pkg: httpd
+ version: 2.5
+ userdefinedlabel: value
+ ...........: value
+ ...........: value
+ -----------------------//
+
+
+In General programming
+ variable = value
+ print(variable)
+
+same style p20.yml 
+ 
+vars:
+  variable: value
+  va: 10
+  vb: 2.3
+  vc: data
+- debug: var=variable
+- debug: var=va,vb  --> (10,2.3)
+- debug: var=[va,vb,vc] --> [10,2.3,data]
+	
+			[ 10,
+			  2.3,
+			  data
+			]
+
+########################################################################3
+1. ansible playbook rule - each module - separate index (or) own index
+
+2. - Value1 -> - module1 
+   - Value2 -> - module2
+  
+     Vs
+   - module1
+     module2
+     -----------//not correct rule
+
+   - name: install httpd   <--------------|
+     yum: name=httpd state=installed	  | 0th index
+     register: result      <--------------|
+   - debug var=result  <--- 1st index 
+########################################################################################
+Write a playbook
+-----------------
+Task1 -> execute group of independent commands and redirect results to external file
+	 (uptime;hstname;df -Th /;ps -e|wc -l)				( ex: r1.log)
+
+Task2 -> use fetch module copy external log file(r1.log) to control system
+						
+Task3 -> use command module - read r1.log - register to variable
+|
+Task4 -> use debug module - display r1.log file content
+
+
+
+
+
+---
+- hosts: node1
+  tasks:
+  - name: execute group of independent commands and redirect results to external file
+    shell: (uptime;hstname;df -Th /;ps -e|wc -l) >/tmp/r1.log
+
+  - name: use fetch module copy external log file(r1.log) to control system
+    fetch: src="/tmp/r1.log" dest="/tmp"
+  
+  - name: use command module - read r1.log - register to variable
+    command: cat /tmp/r1.log
+    register: output
+
+  - name: display log contents
+    debug: var=output.stdout_lines
+------------------------------------------------------------------------------------
+vars:
+  myvar: 120 
+tasks:
+- name: task1
+  module: key="{{myvar}}"	->120	
+
+- name: task2
+  module: key="{{myvar}}"	->120
+
+- module: key="{{myvar}}"	->120
+
+- name: task4
+  module: key="{{myvar}}"	->120
+
+------------------------------------------------
+vars:
+  myvar: 120
+ 
+tasks:
+- name: task1
+  module: key="{{myvar}}"  -> 120	 
+- name: task2
+  vars:
+    myvar: 500
+  module: key="{{myvar}}"  -> 500
+	 
+- module: key="{{myvar}}"  -> 120	
+ 
+- name: task4
+  vars:
+    myvar: 600
+  module: key="{{myvar}}"  -> 600
+
+- vars:
+    myvar: 700
+  module: Key="{{myvar}}"  -> 700
+------------------------------------------------
+
+ansible variable (or) fact variables (or) builtin variables
+...........................................................
+ -> global scope 
+ -> variable name starts with ansible_<name>
+
+	ansible_user
+	ansible_env
+	ansible_os_family
+	ansible_.....
+	|
+	ansible <remoteNode> -m setup |less
+
+########################################################
+
+ Write a ansible playbook 
+ using ansible variable  - display remote node ->os_family
+ using ansible variable  - display memory ->free swap ...
+ -----------------------------------------------------------------
+			
+ansible node1 -m setup -a "filter=ansible_mem*"
+ansible node1 -m setup -a "filter=ansible_*u*"
+  
+##########################################################
+
+condition based execution (or) validation based execution 
+----------------------------------------------------------
+when: boolType
+
+YAML 
+-----
+ |->bool type
+   --------------
+   True true yes on 1  <== True value
+   False false no off 0  <== False value
+  
+when: True_value  --->---|
+module: attrs    ---<----|
+			
+		(2)
+module: attrs --<--
+when: True_value  | ^
+      ^^^^^^^^^^  | |
+	(1) --->---
+
+		 
+- module: attrs     # skipped move to next module
+  when: False_value  
+- module: attrs
+  ...
+- module: ...
+
+ansible supports relational operators == != < <= > >= 
+		 logical operators    and || !
+		 membership operators in  not in
+
+		"OL5" in ["OL5","OL6","OL7"] ->True
+		
+		"OL8" in ["OL5","OL6","OL7"] ->False
+when:  "OL5" in ["OL5","OL6","OL7"]
+
+dnf: name="httpd" state="installed"
+when: ansible_os_family == "RedHat"
+     ................................
+
+debug: msg="{{ansible_os_family}}"
+
+when: ansible_distribution == "Ubuntu" and  ansible_distribution_major_version >5
+      -------------------------------      --------------------------------------
+		Condition1				Condition2
+			|_____________________________________|		->True
+
+
+Write a playbook 
+Test remote node - RedHat -> use dnf module to install software package
+|
+Test remote node - Debian -> use apt module to install software package
+-------------------
+|
+| 
+
+
+
+vars:
+ pkgs: [httpd,apache2]
+
+|
+RedHat ->httpd   <==
+Debian ->apache2 <== 
+|
+capture both installation results to register variable - display summary
+-------------------------------------------------------------------------------
+	
+host specific variable
+----------------------
+
+ InventoryFile
+			node3			node5
+ [dev]			 mydb: mysql	          myapp: enroll
+ node1
+ node2
+ node3 <==
+
+ [prod]
+ node4
+ node5 <----
+ 
+ [db]
+ node3 <==
+ node5 <----
+ node6
+---------------------------------
+ansible-inventory-file-location(or)project-directory/
+						     |
+					mkdir host_vars <== pre-defined directoryName
+					cd host_vars
+					   |    |
+					   |	|____ vi node5
+					   |	      ---
+				    vi node3          myapp: enroll
+				    ---
+				    mydb: mysql
+				    :wq
+
+group specific variable
+------------------------
+[fullstack]   <---------- port: 8080
+ nodeA
+ nodeB
+ nodeC
+
+[db]  <----------- port: 8086
+ nodeX
+ nodeY
+
+ansible-inventory-file-location(or)project-directory/
+						     |
+					mkdir group_vars <== pre-defined directoryName
+					cd group_vars
+					|
+					vi fullstack    vi db
+					---		---
+					port: 8080 	port: 8086
+
+########################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
