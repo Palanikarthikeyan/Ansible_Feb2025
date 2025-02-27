@@ -1,0 +1,5 @@
+---
+- hosts: localhost
+  tasks:
+  - script: 
+      cmd: "./p2.sh"

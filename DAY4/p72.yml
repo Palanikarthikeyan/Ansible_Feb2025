@@ -1,0 +1,8 @@
+---
+- name: template code
+  hosts: [all,localhost]
+  vars:
+  - netproperty: {TYPE: eth0,ONBOOT: yes,BOOTPROTO: dhcp,DEFROUTE: yes}
+  tasks:
+  - name: create network property file
+    template: src=file5.j2  dest=/tmp/netproperty.conf

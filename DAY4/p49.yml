@@ -1,0 +1,12 @@
+---
+- hosts: node1
+  tasks:
+  - name: task-1 wait until file /tmp/r1.log is exists
+    wait_for:
+      path: /tmp/r1.log
+      timeout: 25
+    ignore_errors: yes
+  - name: task-2
+    debug: msg="OK"
+  - name: task-3
+    debug: msg="OK"

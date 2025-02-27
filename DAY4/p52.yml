@@ -1,0 +1,10 @@
+---
+- hosts: node1
+  tasks:
+  - debug: var=item
+    with_fileglob:
+    - "/var/log/*.log"
+ 
+  - shell: grep ssh /var/log/auth.log
+    register: result
+  - debug: var=result.stdout

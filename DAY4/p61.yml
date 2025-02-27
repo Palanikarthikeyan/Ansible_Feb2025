@@ -1,0 +1,15 @@
+---
+- hosts: node1
+  tasks:
+  - name: Add the user 'johnd' with a specific uid
+    user:
+     name: johnd
+     comment: John Doe
+     uid: 1040
+    notify: call
+  handlers:
+  - name: call
+    shell: cat /etc/passwd|grep johnd
+    register: result
+  - name: call
+    debug: var=result

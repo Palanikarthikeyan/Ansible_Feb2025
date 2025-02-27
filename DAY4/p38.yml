@@ -1,0 +1,12 @@
+---
+- name: demo iteration
+  hosts: localhost
+  tasks:
+  - name: display list of servers
+    debug: msg="server name is:{{item}}" # item is predefined special variable
+    with_items:
+    - unix
+    - linux
+    - OL5
+    - OL6
+    - DEB18

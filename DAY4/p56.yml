@@ -1,0 +1,16 @@
+---
+- hosts: localhost
+  tasks:
+  - name: task1
+    command: echo "OK-1"
+    notify: call-one  # if state is changed invoke handler block
+  - name: task2
+    debug: msg="OK-2"
+  - name: task3
+    shell: echo "OK-3"
+    notify: call-two  # if state is changed invoke handler block
+  handlers:
+  - name: call-one
+    debug: msg="This is Handler block-(1)"
+  - name: call-two
+    debug: msg="This is Handler block-(2)"

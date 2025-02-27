@@ -1,0 +1,7 @@
+---
+- hosts: node1
+  vars:
+    L: [/bin/sh,/bin/bash/,/bin/ksh]
+    d: {app: Flask,port: 5000,config: /etc/web2.conf,server: webserver}
+  tasks:
+  - template: src=file4.j2 dest=/tmp/result1.conf

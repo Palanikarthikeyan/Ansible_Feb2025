@@ -1,0 +1,24 @@
+---
+- hosts: localhost
+  tasks:
+  - name: task1
+    debug: msg="OK1"
+  - name: task2
+    command: echo "OK2"
+    notify: callme
+  - name: task3
+    command: echo "OK3"
+    notify:
+    - callone
+    - calltwo
+    - callthree
+  handlers:
+  - name: callme
+    debug: msg="Callme block notified from task2"
+  - name: callone
+    debug: msg="Callone block notified from task3"
+  - name: calltwo
+    debug: msg="Calltwo block notified from task3"
+  - name: callthree
+    debug: msg="Callthree block notified from task3"
+

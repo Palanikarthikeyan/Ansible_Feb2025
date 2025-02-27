@@ -1,0 +1,9 @@
+---
+- hosts: [all,localhost]
+  vars:
+  - sname: Linux
+  - IP: 127.0.0.1
+  - prefix: 24
+  tasks:
+  - name: create IPconfig file
+    template: src=file2.j2 dest=/tmp/IP1.conf

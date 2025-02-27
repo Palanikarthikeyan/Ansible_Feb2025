@@ -1,0 +1,6 @@
+---
+- hosts: localhost
+  tasks:
+  - name: task1
+    command: /bin/true  
+

@@ -1,0 +1,15 @@
+---
+- hosts: localhost
+  tasks:
+  - command: echo "Task-1"
+    notify: callA
+  - command: echo "Task-2"
+    notify: callB
+  - command: echo "Task-3"
+    notify: callA
+  handlers:
+  - name: callA
+    debug: msg="OK-fromCallA"
+  - name: callB
+    debug: msg="OK-fromCallB"
+  

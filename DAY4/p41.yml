@@ -1,0 +1,9 @@
+---
+- hosts: localhost
+  tasks:
+  - debug: msg="{{item}}"
+    with_fileglob:
+    - "./*.log"
+ 
+# like ls *.log
+# ---------------

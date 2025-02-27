@@ -1,0 +1,14 @@
+---
+- hosts: localhost
+  tasks:
+  - shell: systemctl is-active firewalld
+    register: result
+    ignore_errors: true
+  - debug: msg="OK"
+    when: result.rc|int != "0"
+    changed_when: true
+    notify: call
+  handlers:
+  - name: call
+    service: name=firewalld.service state=started
+

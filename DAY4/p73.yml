@@ -1,0 +1,6 @@
+---
+- name: template code
+  hosts: [all,localhost]
+  tasks:
+  - name: create memory_info.log
+    template: src=file6.j2  dest=/tmp/memory_info.log

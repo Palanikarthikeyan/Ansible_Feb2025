@@ -1,0 +1,6 @@
+---
+- hosts: node1
+  vars:
+    L: [/bin/sh,/bin/bash/,/bin/ksh]
+  tasks:
+  - template: src=file3.j2 dest=/tmp/result.conf

@@ -1,0 +1,9 @@
+---
+- hosts: [web,localhost]
+  gather_facts: no
+  tasks:
+  - debug: msg="1st task"
+  - debug: msg="2nd task"
+    delegate_to: shan 
+    run_once: true
+  - debug: msg="3rd task"

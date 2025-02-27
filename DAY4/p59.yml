@@ -1,0 +1,13 @@
+---
+- hosts: localhost
+  tasks:
+  - command: echo "Task-1"
+    notify: call
+  - command: echo "Task-2"
+    notify: call
+  - command: echo "Task-3"
+    notify: call
+  handlers:
+  - name: call 
+    debug: msg="OK"
+  

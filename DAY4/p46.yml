@@ -1,0 +1,12 @@
+---
+- hosts: node1
+  tasks:
+  - name: tast1 wait until port 80 is active
+    wait_for:
+     port: 80
+     state: started
+     timeout: 20
+  - name: task-2
+    debug: msg="OK-2"
+  - name: task-3
+    debug: msg="OK-3"
