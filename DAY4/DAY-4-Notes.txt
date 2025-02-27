@@ -1,0 +1,601 @@
+Predict result
+================
+Q1)
+------------------------------------
+vars:
+- myvar: "abc"
+tasks:
+- debug: msg="Task1"
+  when myvar == "abc"
+- debug: msg="Task2"
+  when myvar != "abc"
+------------------------------------
+
+Q2)
+------------------------------------
+vars:
+- mydict: {"HOSTNAME": "localhost"}
+tasks:
+- debug: msg="OK"
+  when "HOSTNAME" in mydict
+------------------------------------
+
+#  <pattern> in Collection ->True/False
+# 
+#  "data1" in [data1,data2,data3] ->True
+
+#  "data1" in {data1: v1,data2: v2} ->True
+    -----//key is existing or not  
+Q3)
+---------------------------------------
+tasks:
+- command: /bin/true
+- command: /bin/true
+- command: /bin/false ---------------exit
+- debug: msg="End of the task" --- won't display
+---------------------------------------
+ Vs
+---------------------------------------
+tasks:
+- command: /bin/true
+- command: /bin/true
+- command: /bin/false 
+  ignore_errors: true  # ignoring 
+- debug: msg="End of the task" --- will display
+---------------------------------------
+
+Q4)
+vars:
+ port: 4500		-->	port: [4500,6000]
+tasks:
+- debug: var=port  ---->5000	debug: var=port.0  Vs debug: msg="{{port.0}}  {{port.1}}"
+  vars:
+    port: 5000
+- debug: var=port  ---->4500
+-----------------------------------------
+
+Identify the errors
+---------------------
+tasks:
+- name: task1
+  command: /bin/true  
+  shell: ps -e|wc -l   <-- 
+- name: task2
+  yum: name=ksh state=present <--
+		      ------------//value error
+--------------------------------
+tasks:
+- command: ps
+  register: result
+  debug: var=result  <---  Vs  - debug: var=result
+- debug: msg="OK"
+-----------------------------------
+####################################################################################
+
+loop - iteration
+
+- name: task1
+  yum: name=ksh state=installed
+- name: task2
+  yum: name=zsh state=installed
+- name: task3
+  yum: name=gcc state=installed
+
+	Vs
+- name: task1
+  yum: name="{{pkgs}}"  state=installed
+  vars:
+    pkgs:
+    - ksh
+    - zsh
+    - gcc
+--------------------------------------------
+https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_loops.html#with-list
+
+when: <bool>  - Conditional - validation - test 
+|
+with_items - keyword - like looping statements
+			     -------
+with_<name> - iterable - like loop
+-----------   ------------------------
+with_items: <Collection>
+		|->array (or) object
+
+- debug: var=item
+  with_<name>: <collection>
+	^^^^^  ^^^^^^^^^^^^
+
+
+with_fileglob:
+- <directory>/*.log
+	      ---
+		|->wildcard 
+-----------------------------------------------------------------------
+[web]
+node1
+node2
+node3
+node4
+[dev]
+nodeA
+nodeB
+[QA]
+nodeX
+nodeY
+[DBA]
+nodeF
+nodeG
+[fullstack]
+nodeP
+nodeQ
+
+- hosts: [web,dev,QA]
+  tasks:
+  - debug: msg="This is task section"
+    delegate_to: "{{item}}"
+    with_items:
+    - node2
+    - nodeB
+    - nodeY
+    run_once: true
+
+====================================================
+wait_for
+
+state: 
+  - started - whether port is open
+  - stopped - whether port is closed
+  - drained - whether connection is active 
+  ---------------------------------------------//service (ex: port 80;8080;5000 ..)
+  - present - file <or> string(pattern)
+  - absent - file is removed (or) absent
+  
+ansible-doc wait_for
+path 
+----
+ |-> fileName - present <or> absent
+     .........
+
+wait_for:
+ path: <filename>
+ search_regex: "Pattern"  
+-----------------------------//from the inputfile given pattern should exists
+######################################################################################
+
+---
+- hosts: <remotenode>   # target section
+  
+  vars:
+    variable: value     # varaible section
+
+  tasks:
+  - <module>: <params>  # task section
+  |
+  handlers:
+  - <module>: <params> # handler section - secondary task
+
+recap configuration management tool 
+       --------------------
+		|-----------------------------------[remote node]
+				|___________________[load the module(python_code)]
+				|____________________[execute this module]
+							 |
+							result ->changed remote state	
+		---------------------<----------------------------------------------
+		state: changed 				
+
+
+recap configuration management tool 
+       --------------------
+		|-----------------------------------[remote node]
+				|___________________[load the module(python_code)]
+				|____________________[execute this module]
+							 |
+							result ->changed remote state	
+		---------------------<----------------------------------------------
+		state: Not-changed 				
+
+
+recap configuration management tool 
+       --------------------
+		|-----------------------------------[remote node]
+				|___________________[load the module(python_code)]
+				|____________________[execute this module]
+							 |
+							result ->changed remote state	
+		---------------------<----------------------------------------------
+		state: changed 				
+		|
+		notify: <handlerName>  <-- like os signal
+		   |
+		invoke the handler 
+
+
+---
+- hosts: node1
+  tasks:
+  - name: task1
+    apt: name="apache2" state="present"	  ----------------------> installed - state:true
+  - name: task2									
+    service: name="apache2" state="started"
+
+Vs
+---
+- hosts: node1
+  tasks:
+  - name: task1
+    apt: name="apache2" state="present"	  ----------------------> installed - state:true
+    notify: task2 --->--
+  handlers:             |
+  - name: task2  --<----
+    service: name="apache2" state="started"
+----------------------------------------------------------------------------
+
+handler block 
+- execute at the end ( after complete all the main task then handler block will run)
+- based on primary task execution -> remote node ->changed ->state is changed(state:true)
+|
+- notify <-- keyword - its placed in primary task 
+
+example:
+ command
+ shell
+ --------//always state is changed (state: true)
+
+ debug 
+ -------//always state is not-changed (state: false)
+
+###############################################################################
+Write a playbook
+
+task1 -> command -> execute date command
+	  register - caputure date result
+	  notify: handler1 -  
+task2 -> command -> execute uptime command
+	  register - caputure uptime result
+	  notify: handler2 - 
+
+in handler block -> display both command result
+
+---
+- hosts: localhost
+  tasks:
+  - name: task1
+    command: date
+    register: result1
+    notify: display1
+  - name: task2
+    command: uptime
+    register: result2
+    notify: display2
+  handlers:
+  - name: display1
+    debug: var=result1.stdout
+  - name: display2
+    debug: msg="{{result2.stdout}}"
+--------------------------------------------------------------------------
+Write a playbook
+task1 -> install package (httpd <or> apache2) - validation
+
+handler tasks -> start a webserver 
+
+---
+- hosts: all
+  vars:
+    pkgs: [httpd,apache2]
+  tasks:
+  - name: task1
+    dnf: name="{{pkgs[0]}}" state="installed"
+    when: ansible_os_family == "RedHat"
+    register: result1
+    notify: call1
+  - name: task2
+    apt: name="{{pkgs[1]}}" state="present"
+    when: ansible_os_family == "Debian"
+    register: result2
+    notify: call2
+  handlers:
+  - name: call1
+    service: name="{{pkgs[0]}}" state=started 
+  - name: call2
+    service: name="{{pkgs[1]}}" state=started 
+---------------------------------------------
+tasks:
+- name: task1
+  command: date
+  register: result
+  notify: calls
+- name: task2
+  command: uptime
+  register: result_uptime
+  notify: calls
+handlers:
+- name: calls
+  debug: msg="{{result.stdout}}  {{result_uptime.stdout}}"
+---------------------------------------------------------
+tasks:
+- name: task1
+  command: date
+  register: result ------
+  notify: calls
+- name: task2
+  command: uptime
+  register: result ------ //duplicate register variable
+  notify: calls
+handlers:
+- name: calls
+  debug: msg="{{result.stdout}}  {{result.stdout}}"
+-----------------------|-------------------|---------------
+		       |____uptime result__|
+
+tasks:
+- name: task1
+  command: date
+  register: result 
+  notify: call1
+- name: task2
+  command: uptime
+  register: result 
+  notify: call2
+handlers:
+- name: call1
+  debug: msg="{{result.stdout}}"
+- name: call2
+  debug: msg="{{result.stdout}}"
+-------------------------------------------------------------------------
+-----------------------------
+Write a playbook
+task1 - user module -> create a new user - notify 
+
+task2 - handler block -> command 
+			   id <username> (or) grep userName /etc/passwd
+			  debug - display user details 
+--------------------------------------------------------------------------
+- name: Add the user 'johnd' with a specific uid and a primary group of 'admin
+  user:
+    name: johnd
+    comment: John Doe
+    uid: 1040
+    group: admin
+
+ansible node1 -m user -a "name=johnd  comment=Johne Doe uid=1040 group=admin"
+
+
+---
+- hosts: node1
+  tasks:
+  - name: Add the user 'johnd' with a specific uid
+    user:
+     name: johnd
+     comment: John Doe
+     uid: 1040
+    notify: call
+  handlers:
+  - name: call
+    shell: cat /etc/passwd|grep johnd
+    register: result
+  - name: display 
+    debug: var=result
+------------------------------------------------------------------------
+ 
+ - hosts: localhost
+  tasks:
+  - name: task1
+    command: echo "OK1"
+    notify: callme
+  - name: task2
+    command: echo "OK2"
+    notify: callme
+  - name: task3
+    command: echo "OK3"
+    notify: callme
+  handlers:
+  - name: callme
+    debug: msg="Thankyou-1"
+  - name: callme
+    debug: msg="Thankyou-2"
+
+	Vs
+
+ - hosts: localhost
+  tasks:
+  - name: task1
+    command: echo "OK1"
+    notify: call1
+  - name: task2
+    command: echo "OK2"
+    notify: callme
+  - name: task3
+    command: echo "OK3"
+    notify: callme
+  handlers:
+  - name: one
+    debug: msg="Thankyou-1"
+    listen: callme
+  - name: two
+    debug: msg="Thankyou-2"
+    listen: call1
+  - name: three
+    debug: msg="Thankyou-3"
+    listen: callme
+
+######
+---
+- hosts: dev
+  tasks:
+  - name: Adding a user
+    user:
+      name: Aliza
+      chmod: 777
+      uid: 1017
+    notify: xall
+  handlers:
+  - name: xall
+    shell: cat /etc/passwd| grep -i Aliza
+  - debug: msg="shell"
+#####
+
+
+tasks:
+- name: task1
+  apt: name="apache2" state="present"
+  notify: call
+handlers
+- name: call
+  service: name="apache2" state="started"
+
+node m/c
+------------
+ |->package is already installed 
+ |->systemctl is-active apache2
+    inactive
+
+tasks:
+- name: task1
+  apt: name="apache2" state="present"
+  notify: call
+  changed_when: true # forcing to make change state 
+handlers
+- name: call
+  service: name="apache2" state="started"
+
+
+
+-------
+systemctl is-active filename.service >/dev/null 2>&1
+if [ $? -eq 0 ];then
+	echo "filename.service is active"
+else
+	echo "filename.service is not active"
+	systemctl start filename.service >/dev/null 2>&1
+	if [ $? -eq 0 ];then
+		echo "filename.service started"
+	else
+		echo "filename.service is not started"
+	fi
+fi
+
+- command: filename.service is active
+  register: result
+
+- service: name=filename.service state=started
+  when: result.rc != 0 
+
+-------------------------------------------------------	      
+- command: filename.service is active
+  register: result
+ 
+- debug: msg="OK"
+  notify: call
+  when: result.rc !=0
+handlers:
+- name: call
+  service: name=filename.service state=started
+###############################################################################
+template section
+----------------
+ jija2 template code
+
+ --------------------
+ Cricket score:|   |    <h1><font color=green>Cricket score:{{score}}</font></h1>
+ --------------------					    --     --
+
+{{variable}}
+
+{{expression}}
+   
+{%if condition %}
+
+{% endif %}
+
+
+   |->keyword	|->keyword
+{%for variable in <collection>%}
+	|		|__________ userdefined Array (or) object
+	|_user defined
+{% endfor %}
+----------------------------------------------------------------------
+
+
+- name: task
+  copy: src=sourceFile dest=targetFile  - like cp sourceFile targetFile
+				|--------->on remote m/c
+		Vs
+- name: task
+  template: src=sourceFile dest=targetFile
+				-----------
+				 |------>on remote m/c 
+					
+
+###############################################################################D
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
