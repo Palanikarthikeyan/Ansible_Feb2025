@@ -1,0 +1,837 @@
+Recap
+-------
+target section - remote node (or) group <-- from inventory file
+		 hosts: 
+variable section - vars: <== 
+
+tasks section - tasks:
+		- module:
+		  ...
+handler section - handlers:
+		  - name: 
+		    module
+
+template section
+ |
+src=file.j2   dest=/etc/file.conf
+----------------------------------------------------------------
+asnyc
+------
+https://toptechtips.github.io/2019-07-09-ansible_run_playbooks_tasks_in_parallel/#google_vignette
+
+
+tasks:
+- name: task1
+  command: sleep 60
+- name: task2
+  command: sleep 5
+
+------------------------------------------------------------------
+
+---
+- name: <name of the playbook-1>
+  hosts: 
+  vars:
+   ...
+  tasks:
+  - name: 
+    module1
+    ignore_errors: true
+  - name:
+    module2
+    when: <condition>
+  - name:
+    module3
+    become: true
+  handlers:
+  - name:
+    module
+  
+block - collection of task under single unit
+-----
+block 
+rescue
+always
+---------//keywords 
+
+block:
+  <group of tasks>
+rescue:
+  <Handle the task error>
+always:
+  Always running - it's not depends on the Exception
+
+
+
+- hosts: localhost
+  tasks:
+  - name: block execution
+    block:
+    - name: task1
+      command: /bin/true
+    - name: task2
+      command: /bin/true
+    - name: task3
+      command: /bin/true
+    - name: task4
+      command: /bin/true
+    - name: task5
+      command: /bin/false ------------------>----------------|--
+    - name: task6                                            |
+      debug: msg="OK"  ---- this will not execute            |
+    rescue:                                                  |
+    - name: Handle the errors   --------------<--------------|
+      module: ...
+    always:
+    - name: ....
+      module: ...
+
+################################# Vs ##################################################
+tasks:
+   - name: Install
+     when: ansible_facts['distribution'] == 'CentOS'
+     yum: name= "{{item}}"      state=present
+     with_items:
+     - httpd
+     - Memcached
+     ignore_errors: true
+   - name: Configuration
+     when: ansible_facts['distribution'] == 'CentOS'
+     template: 
+           src: templates/src.j2
+           dest: /etc/foo.conf
+     ignore_errors: true
+   - name: Start service bar and enable it
+     when: ansible_facts['distribution'] == 'CentOS'
+     service:
+       name: bar
+       state: started
+       enabled: True
+     ignore_errors: true
+--------------------------------------------------------------------------------------
+
+[root@krosumlabs ansible_tut]# myvar=120 ### initialization
+[root@krosumlabs ansible_tut]#
+[root@krosumlabs ansible_tut]# echo $myvar
+120
+[root@krosumlabs ansible_tut]#
+[root@krosumlabs ansible_tut]# myresult=`ps -e|wc -l`
+[root@krosumlabs ansible_tut]# echo $myresult
+107
+[root@krosumlabs ansible_tut]#
+
+------------------------------
+vars:
+  myvar: 120 
+tasks:
+- name: <name of the task>
+  module: Key1=Value
+|
+
+set_fact <== module - task section
+
+-m module -a "Key=Value"
+		|
+-m yum -a "name=<packageName>   state=<...>"
+	    |			|
+	   predefinedKEY	predefinedKEY
+ Vs
+-m set_fact -a "UserdefinedKEY=<filter/function execution results>"
+		-------------- ===================================
+
+-m set_fact -a "K1={{function()}}"
+-m set_fact -a "K2={{inputVariable|function}}"
+			|_(1)____________||
+		|______________________|(2)
+		(3)
+
+
+			
+			
+
+-----------------------------------
+
+tasks:
+- name: Set fact example
+  set_fact: own_key: filter/function_execution_value
+
+- name: set fact example2
+  set_fact: myresult=module_execution_value
+	    -----------------------------------// myresult 
+
+---
+- hosts: localhost
+  tasks:
+  - name: task1
+    command: uname
+    register: result1
+  - name: task2
+    set_fact: k1="{{result1.stdout|list}}"
+  - debug: var=k1
+  - set_fact: k2="{{result1.stdout_lines|to_nice_yaml}}"
+  - debug: var=k2
+--------------------------------------------------------
+
+command module -> cat filename.json
+register json results to register_variable
+register_variable.stdout |from
+
+list of ansible filters/functions
+--------------------------------------------
+https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_filters.html
+-----------------------------------------------------------------------------------
+
+Recap
+--------
+file: p1.yml
+---------------
+---
+- hosts: <hostname> # target section
+  tasks:
+  - command: date # task1
+  - command: ps  # task2
+  - command: uptime # task3
+---------------
+p1.yml = target + task section
+
+file: p2.yml   ----------------------->-----(A)
+---------------
+- command: date
+- command: ps
+- command: uptime
+---------------------
+ task only section - we can't execute this yml
+
+file: p3.yml
+------------
+---
+- hosts: node1
+  tasks: 
+  - shell : ps -e|wc -l
+  <include external task-file> --------<------(A) 
+  - debug: msg="Thank you"
+------------------------------------------------
+
+use - include tag (key)
+-------------------------
+file: p3.yml
+---
+- hosts: node1
+  tasks: 
+  - shell : ps -e|wc -l
+  - include: p1.yml 
+  - debug: msg="Thank you"
+===============================================================================
+
+import_playbook: <playbook-file.yml>
+
+include_task: <include task onlyformat file.yml>
+  <or>
+include: <include task onlyformat file.yml>
+
+--------------------------------------------------------
+----------------------
+- name: task1
+  include_vars:  t1.yml
+  debug: var=myarr
+------------------------
+
+file: t1.yml
+--------------
+myvar: 120
+myarr:
+- d1
+- d2
+- d3
+---------------
+
+# anotherway
+
+----------------------
+- name: task1
+  include_vars:  t1.yml
+  debug: var=myarr
+  name: myvar 
+------------------------
+
+file: t1.yml
+--------------
+myvar: 120
+myarr:
+- d1
+- d2
+- d3
+---------------
+
+- name: include variables
+  include_vars: 
+   file: p94.yml
+    Vs
+- name: include variables
+  include_vars: p94.yml 
+---------------------------//both are same
+---------------------------------------------------
+mkdir Dx
+cd Dx
+
+file: pa.yml   file: pb.yml  file: pc.yml  <- list of yaml files
+myapp: django  myport: 8080  mypath: /web2.0
+
+cd ..
+--------------------------------------------------
+file: p1.yml <== playbook file
+---
+- hosts: <node>
+  tasks:
+  - name: taskname
+    include_vars:
+       dir: /path/Dx
+       name: myapp
+  - debug: msg="App name is:{{myapp}}"
+----------------------------------------------------
+
+file: p2.yml
+- name: task
+  include_vars:
+     url: https://abc.com/filename.yml  <== The URL to fetch the variables from 
+     name: my_variable <== name of the variable
+	
+---------------------------------------------------
+ 
+task1:
+- shell: ps >/tmp/p1.log
+- shell: ps >/tmp/p2.log
+
+- command: cat /tmp/p1.log
+  register: result1
+ ..
+
+- set_fact: typecast result1.stdout_lines ->list 
+- apply intersect() - filter common data from both p1.log & p2.log
+- display common data
+---------------------------------------------------
+
+---
+- hosts: node1
+  tasks:
+  - shell: (ps;sleep 5;date) >/tmp/p1.log
+  - shell: ps >/tmp/p2.log
+  - command: cat /tmp/p1.log
+    register: result1
+  - command: cat /tmp/p2.log
+    register: result2
+  - set_fact: r1="{{result1.stdout_lines|list}}"
+  - set_fact: r2="{{result2.stdout_lines|list}}"
+  - set_fact: comm="{{r1|intersect(r2)}}"
+  - debug: var=comm
+
+  
+#################################################################################
+Regx
+ |->BRE - single
+ |->ERE - multiple
+
+BRE						ERE
+-----						-------
+^pattern - line starts 				| ->alternate 
+pattern$ - line ends 				()->both pattern should match		
+^pattern$ - pattern only style			+ -> 1 or more
+[]						{}
+^[]						<pattern>{n} ->n times
+[]$					<pattern>{n,} ->minimum n times max nolimit
+[^] - Not matching chars		<pattern>{n,m}->min n times max m times
+^$ - empty line	
+----				--------------------------------------------------
+
+---
+- hosts: node1
+  tasks:
+  - shell: ps -e
+    register: result
+  - set_fact: K="{{result.stdout|regex_search("[a-z]+[0-9]+")}}"
+  - debug: var=K
+  - set_fact: K="{{result.stdout|regex_findall("[a-z]+[0-9]+")}}"
+  - debug: var=K
+====================================================================================
+Tags
+----
+
+tasks:
+- <module>:
+    params: value
+   tags:
+   - tagName
+
+ansible-playbook p99.yml --tags=sales
+ansible-playbook p99.yml --skip-tags "sales" # except sales tag remaining tags will 						     # execute.
+
+#ansible-playbook p99.yml --list-tags  # To get list of tags
+
+playbook: p99.yml
+
+  play #1 (localhost): localhost        TAGS: []
+      TASK TAGS: [QA, prod, sales]
+#
+------------------------------------------------------------------------------------
+local_action 
+-------------
+ |->special key(type) - execute the module and args-on local m/c(ansible control system)							
+
+tasks:
+- module1
+- module2
+- module3
+..
+- moduleN
+ ------------//execute on the remote system
+
+Syntax:-
+----------
+local_action:
+  module: <moduleName>
+  args:
+     <moduleArguments>
+
+tasks:
+- command: uptime  # remote node uptime
+- local_action:
+    module: command
+    args:
+      cmd: uptime # control node uptime
+
+
+Write a playbook - display available disk space from remote node and control node
+-----------------
+
+---
+- hosts: all
+  tasks:
+  - name: task1-mounted filesystem and disk space
+    command: df -Th 
+    register: result1
+  - name: task2-Check available disk space on the control node
+    local_action:
+       module: command
+       args:
+         cmd: df -Th
+     register: result2 
+  - debug: var=result1.stdout
+  - debug: var=result2.stdout
+######################################################################
+ansible-vault
+
+ansible-vault create filename.yml
+
+ansible-vault encrypt filename.yml
+
+ansible-vault decrypt filename.yml
+	      {edit|view}
+
+ansible-vault encrypt p103.yml
+
+[root@krosumlabs ansible_tut]# ansible-vault decrypt p103.yml
+Vault password:
+Decryption successful
+[root@krosumlabs ansible_tut]# cat p103.yml
+---
+- name: simple playbook execution
+  hosts: node1
+  tasks:
+
+
+# to create 
+ansible-vault create p104.yml {Enter}
+...
+:wq 
+
+
+# to view 
+
+[root@krosumlabs ansible_tut]# ansible-vault view p104.yml
+Vault password:
+---
+- hosts: localhost
+  tasks:
+  - debug: msg="OK"
+[root@krosumlabs ansible_tut]#
+ To run
+ ansible-playbook p104.yml --ask-vault-pass
+
+--------------------------------------------------------------------
+roles
+------
+ |->directory
+
+
+Movie
+------
+ [Actor]
+   |  |_______role1 - 
+   |			
+   |__________role2 -
+
+
+[m/c]
+ | |________ dev
+ |
+ |__________ prod
+ 
+
+mkdir roles <== pre-defined directory
+cd roles
+    |
+    \___mkdir project_director (roleName) <== user-defined directory
+	cd project_directory
+	   |
+	   |__ mkdir vars 	tasks   handlers 	template   
+vars			|        |         |            |
+tasks		    main.yml    main.yml  main.yml	file1.j2
+handlers
+template
+
+	cd .. # go to parent directory
+  cd .. # change to roles parent directory
+
+file: p1.yml
+---
+- name: roledemo
+  hosts: <node>
+  roles:
+  - <roleName>
+-------------------//p1.yml 
+
+
+file: p1.yml
+----------------
+---
+- name: demo1
+  hosts: node1
+  tasks:
+  - name: task1
+    apt: name=zsh state=present
+  - name: task2
+    command: ps
+    register: result
+  - name: task3
+    debug: var=result.stdout
+-------------------------------------
+mkdir roles <== pre-defined 
+cd roles
+mkdir devnode <== user defined (roleName)
+cd devnode
+mkdir tasks <== pre-defined 
+cd tasks
+
+vi pa.yml <== user defined 
+
+- name: task1
+  apt: name=zsh state=present
+- name: task2
+  command: ps
+  register: result
+- name: task3
+  debug: var=result.stdout
+
+:wq
+
+cd .. # change to task parent directory
+cd .. # change to devnode parent directory
+cd .. # change to roles parent directory
+
+roles/
+  |__devnode/
+	|___tasks/
+		|__pa.yml
+		   --------
+
+vi master1.yml <== user defined filename
+---
+- hosts: <node1>
+  roles:  <==========
+  - devnode
+:wq
+ansible-playbook master1.yml 
+
+
+
+
+mkdir roles <== pre-defined 
+cd roles
+mkdir devnode <== user defined (roleName)
+cd devnode
+mkdir tasks <== pre-defined 
+cd tasks
+
+vi pa.yml <== user defined 
+
+- name: task1
+  apt: name=zsh state=present
+
+vi pb.yml
+- name: task2
+  command: ps
+  register: result
+- name: task3
+  debug: var=result.stdout
+
+vi pc.yml
+- name: task4
+  debug: msg="OK"
+  
+:wq
+
+cd .. # change to task parent directory
+cd .. # change to devnode parent directory
+cd .. # change to roles parent directory
+
+roles/
+  |__devnode/
+	|___tasks/
+		|__pa.yml pb.yml pc.yml
+		   ------ ------ -------
+----------------------------------------------------------------------------------
+
+file:p2.yml
+--------------
+---
+- hosts: all
+  vars:
+  - pk1: httpd
+  - pk2: apache2
+  tasks:
+  - name: install httpd
+    dnf: name="{{pk1}}" state="installed"
+    when: ansible_os_family == "RedHat"
+  - name: install apache2
+    apt: name="{{pk2}}" state="installed"
+    when: ansible_os_family == "Debian"
+
+cd roles
+mkdir QA
+cd QA
+mkdir tasks vars 
+	|    |
+-----------------------------------------------------------------------------
+template: src=file1.j2 dest=/etc/f1.conf
+--------
+ |---->mkdir templates
+
+---
+- hosts: node1
+  vars:
+  - pkgs: [at,apache2]
+  tasks:
+  - name: task1
+    dnf: name="{{pkgs[0]}}" state="installed"
+    when: ansible_os_family == "RedHat"
+    register: result1 
+    notify: call_at
+
+  - name: task2
+    apt: name="{{pkgs[1]}}" state="present"
+    when: ansible_os_family == "Debian"
+    register: result2
+    notify: call_deb
+  - debug: var=call_at.result
+  - debug: var=call_deb.result
+  handlers:
+  - name: call_at
+    service: name="{{pkgs[0]}}" state="started"
+  - name: call_deb
+    service: name="{{pkgs[1]}}" state="started"
+
+ mkdir -p roles/testserver/
+ cd roles/testserver
+ mkdir vars tasks handlers
+	|     |		|
+    a.yml   b.yml      c.yml
+cd ..
+cd ..
+---
+- name: role1 demo
+  hosts: node1
+  roles:
+  - testserver
+######################################################################
+
+galaxy ->repository
+
+vars
+tasks
+handlers
+templates
+
+defaults/ variables are defined 
+files/   keep source files <or> inputfiles ( -m copy -a "src=p1.log)
+meta/   documents
+test/  -> sample master.yml file <-- 
+------------------------------------------------------------------
+roles/
+   |__roleName/
+		...
+roles/
+   |__roleName/
+--------------------------//collection
+
+ansible-galaxy role import - import role from galaxy website
+ansible-galaxy role install - install role
+ansible-galaxy role remove  - remove one or more roles
+ansible-galaxy role init - generate new role structure ; mkdir roles/,..
+ansible-galaxy role list  - display name of the roles and details
+ansible-galaxy role info - info about role
+======================================================================
+ansible tower 
+- web based tool
+  |
+ ansible-playbook ->jinja2 template code 
+ REST API
+  ->get post put .. json 
+ ..
+
+ tower -> dashboard
+	  |
+	  |->collection of panels
+			    |->visualization
+
+register
+|
+organization
+  |->teamA
+	|->userA userB userC
+  |->teamB
+	|->userD userE
+	    |	 ------
+	    |      |<-- view permission
+	    |
+	    |<-admin <= permission
+  |->teamC
+	|->userF
+
+======================================================================
+jinja2 template
+
+web_developement -> embedded with <html> tags
+				 ------------
+
+			<h1><font color=blue>Count:{{cvalue}}</font></h1>
+			---------------------------          -------------
+						   ^^^^^^^^^^
+							|<== dynamic value from APIcalls
+
+----------------------------------------------------------------------------------------
+
+{{variable}}
+{{expression}}
+
+{% if condition %}
+{% endif %}
+
+{% for var in <collection>%}
+	
+{% endfor %}
+----------------------------------------------------------------------------------------
+
+
+
+
+ 		   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			
+
+
+
+
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
