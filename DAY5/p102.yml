@@ -1,0 +1,7 @@
+---
+- name: dense plugin demo
+  hosts: localhost
+  strategy: debug
+  tasks: 
+  - name: display cpu LB
+    command: uptime

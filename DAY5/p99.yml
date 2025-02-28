@@ -1,0 +1,29 @@
+---
+- hosts: localhost
+  tasks:
+  - name: task-1
+    debug: msg="OK-1"
+  - name: task-2
+    debug: msg="OK-2"
+    tags:
+    - sales
+    - QA
+  - name: task-3
+    debug: msg="OK-3"
+  - name: task-4
+    debug: msg="OK-4"
+    tags:
+    - prod
+  - name: task-5
+    debug: msg="OK-5"
+    tags:
+    - sales
+    - prod
+  - name: task-6
+    debug: msg="OK-6"
+  - name: task-7
+    debug: msg="OK-7"
+    tags:
+    - sales
+  - name: task-8
+    debug: msg="OK-8"

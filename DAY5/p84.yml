@@ -1,0 +1,8 @@
+---
+- hosts: localhost
+  tasks:
+  - debug: msg="App name is:{{myapp}}"
+
+ # Run as: ansible-playbook p84.yml -e "myapp=Flask" 
+ # -------                          -----------------//runtime input
+ # 

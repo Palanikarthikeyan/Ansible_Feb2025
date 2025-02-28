@@ -1,0 +1,6 @@
+---
+- name: role1 demo
+  hosts: all
+  roles:
+  - devnode
+  - QA

@@ -1,0 +1,6 @@
+---
+- hosts: localhost
+  vars:
+  - myapp: Flask
+  tasks:
+  - debug: msg="App name is:{{myapp}}"

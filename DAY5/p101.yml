@@ -1,0 +1,14 @@
+---
+- hosts: node1
+  tasks:
+  - name: task1-mounted filesystem and disk space
+    command: df -Th 
+    register: result1
+  - name: task2-Check available disk space on the control node
+    local_action:
+       module: command
+       args:
+         cmd: df -Th
+    register: result2 
+  - debug: var=result1.stdout
+  - debug: var=result2.stdout

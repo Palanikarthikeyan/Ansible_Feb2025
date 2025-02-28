@@ -1,0 +1,8 @@
+---
+- hosts: localhost
+  vars:
+   netinfo: {TYPE: eth0,onboot: yes,bootproto: dhcp,K1: [V1,V2,V3]}
+  tasks:
+  - name: convert dict to items
+    set_fact: r1="{{netinfo|dict2items}}" # dict2items - filter 
+  - debug: var=r1

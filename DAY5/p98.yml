@@ -1,0 +1,9 @@
+---
+- hosts: node1
+  tasks:
+  - shell: ps -e
+    register: result
+  - set_fact: K="{{result.stdout|regex_search("[a-z]+[0-9]+")}}"
+  - debug: var=K
+  - set_fact: K="{{result.stdout|regex_findall("[a-z]+[0-9]+")}}"
+  - debug: var=K

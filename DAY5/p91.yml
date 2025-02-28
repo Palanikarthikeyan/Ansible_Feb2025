@@ -1,0 +1,8 @@
+---
+- hosts: node1
+  tasks:
+  - name: task-1
+    debug: msg="OK-1"
+  - include: p90.yml
+  - name: end of the task
+    debug: msg="End of the playbook"

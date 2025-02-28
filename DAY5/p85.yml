@@ -1,0 +1,11 @@
+---
+- hosts: localhost
+  tasks:
+  - name: task1
+    command: uname
+    register: result1
+  - name: task2
+    set_fact: k1="{{result1.stdout|list}}"
+  - debug: var=k1
+  - set_fact: k2="{{result1.stdout_lines|to_nice_yaml}}"
+  - debug: var=k2

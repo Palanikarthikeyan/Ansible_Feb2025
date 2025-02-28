@@ -1,0 +1,13 @@
+---
+- name: asnyc and poll demo
+  hosts: node1
+  tasks:
+  - name: task1
+    debug: msg="OK1"
+  - name: task2
+    command: sleep 10
+    async: 20
+    poll: 0
+
+  - name: task3 
+    debug: msg="OK2"

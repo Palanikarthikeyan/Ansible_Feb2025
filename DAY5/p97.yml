@@ -1,0 +1,9 @@
+---
+- hosts: node1
+  tasks:
+  - shell: ps -e
+    register: result
+  - set_fact: K="{{result.stdout|regex_search("[0-9]")}}"
+  - debug: var=K
+  - set_fact: K="{{result.stdout|regex_findall("[0-9]")}}"
+  - debug: var=K

@@ -1,0 +1,5 @@
+---
+- name: role1 demo
+  hosts: node1
+  roles:
+  - testserver

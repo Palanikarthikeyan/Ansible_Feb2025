@@ -1,0 +1,14 @@
+---
+- hosts: node1
+  tasks:
+  - shell: (ps;sleep 5;date) >/tmp/p1.log
+  - shell: ps >/tmp/p2.log
+  - command: cat /tmp/p1.log
+    register: result1
+  - command: cat /tmp/p2.log
+    register: result2
+  - set_fact: r1="{{result1.stdout_lines|list}}"
+  - set_fact: r2="{{result2.stdout_lines|list}}"
+  - set_fact: comm="{{r1|intersect(r2)}}"
+  - debug: var=comm
+

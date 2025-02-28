@@ -1,0 +1,11 @@
+---
+- hosts: localhost
+  tasks:
+  - name: include external variables
+    include_vars: p94.yml
+  - name: display my_var value
+    debug: var=my_var
+  - name: iterate list of arr from external variable
+    debug: msg="list of array elements:{{item}}"
+    with_items:
+    - "{{my_arr}}"

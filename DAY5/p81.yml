@@ -1,0 +1,17 @@
+---
+- hosts: localhost
+  tasks:
+  - name: block execution - 1
+    block:
+    - name: task1
+      command: /bin/true 
+    - name: task2
+      command: /bin/false
+    - name: task3
+      command: /bin/true 
+    rescue:
+    - name: Handle the errors
+      debug: msg="recue block"
+    always:
+    - name: Always running block
+      debug: msg="Thank you"

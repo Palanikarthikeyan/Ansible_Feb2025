@@ -1,0 +1,15 @@
+---
+- hosts: localhost
+  vars:
+  - fname: /etc/passwd
+  - findex: 456
+  - futl: 98.34
+  - fstatus: true
+  - finfo: [D1,D2]
+  - fsize: {size: 2KB}
+  tasks:
+  - debug: msg="{{fname|type_debug}}"
+  - debug: msg="{{findex|type_debug}}"
+  - debug: msg="{{futl|type_debug}}"
+  - debug: msg="{{fstatus|type_debug}}"
+  - debug: msg="{{fsize|type_debug}}"

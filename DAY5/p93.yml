@@ -1,0 +1,9 @@
+---
+- import_playbook: p1.yml
+- import_playbook: p2.yml
+- import_playbook: p4.yml
+  when: dept == "QA"  
+
+# run as: ansible-playbook p93.yml -e "dept=QA" <== commandline args 
+# -----------------------------------------------------------------------
+#

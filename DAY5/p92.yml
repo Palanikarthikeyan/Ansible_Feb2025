@@ -1,0 +1,4 @@
+---
+- import_playbook: p1.yml
+- import_playbook: p2.yml
+- import_playbook: p4.yml

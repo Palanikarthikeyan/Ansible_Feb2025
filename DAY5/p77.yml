@@ -1,0 +1,22 @@
+---
+- hosts: node1
+  tasks:
+  - name: task1
+    command: uptime
+  - name: task2
+    shell: /root/pa.sh >/dev/null 2>&1
+    async: 10
+    poll: 0
+    register: result
+  - name: task3
+    debug: msg="OK-3"
+  - name: task4
+    debug: msg="OK-4"
+  - name: job_status
+    async_status:
+      jid: "{{result.ansible_job_id}}"
+    register: display
+    until: display.finished 
+    retries: 2
+    delegate_to: localhost
+    run_once: true

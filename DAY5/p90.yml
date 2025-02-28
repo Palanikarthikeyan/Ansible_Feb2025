@@ -1,0 +1,11 @@
+ - name: task install a zsh
+   apt:
+     name: zsh
+     state: present
+   when: ansible_os_family == "Debian"
+ - name: test zsh is installed
+   shell: rpm -qa|grep zsh 
+   register: result
+   ignore_errors: true
+ - name: display status
+   debug: var=result.rc

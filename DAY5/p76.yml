@@ -1,0 +1,9 @@
+---
+- hosts: node1
+  tasks:
+  - name: task1
+    command: uptime
+  - name: task2
+    shell: /root/pa.sh >/dev/null 2>&1
+  - name: task3
+    debug: msg="OK"

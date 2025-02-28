@@ -1,0 +1,5 @@
+---
+- hosts: localhost
+  tasks:
+  - set_fact: r1="{{lookup('env','SHELL')}}"
+  - debug: msg="login shell name is:{{r1}}"

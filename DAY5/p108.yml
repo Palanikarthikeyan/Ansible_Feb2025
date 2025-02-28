@@ -1,0 +1,7 @@
+---
+- name: role demo
+  hosts: all
+  roles:
+  - { role: QA,when: ansible_os_family == "RedHat"}
+  - { role: devnode,when: ansible_os_family == "Debian"}
+

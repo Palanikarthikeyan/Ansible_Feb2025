@@ -1,0 +1,7 @@
+---
+- hosts: node1
+  tasks:
+  - command: cat /tmp/p1.json
+    register: result
+  - set_fact: r="{{result.stdout|from_json}}"
+  - debug: var=r
